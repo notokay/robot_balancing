@@ -1,0 +1,245 @@
+from sympy import symbols
+from sympy.physics.mechanics import dynamicsymbols, ReferenceFrame, Point, inertia, RigidBody, KanesMethod
+from pydy.codegen.code import generate_ode_function
+from numpy import array, linsace, deg2rad, ones, concatenate
+
+
+# Orientations
+# ============
+
+theta1, theta2, theta3 = dynamicsymbols('theta1, theta2, theta3')
+
+inertial_frame = ReferenceFrame('I')
+
+lower_leg_frame = ReferenceFrame('L')
+
+lower_leg_frame.orient(inertial_frame, 'Axis', (theta1, inertial_frame.z))
+
+upper_leg_frame = ReferenceFrame('U')
+
+upper_leg_frame.orient(lower_leg_frame, 'Axis', (theta2, lower_leg_frame.z))
+
+torso_frame = ReferenceFrame('T')
+
+torso_frame.orient(upper_leg_frame, 'Axis', (theta3, upper_leg_frame.z))
+
+# Point Locations
+# ===============
+
+# Joints
+# ------
+
+lower_leg_length, upper_leg_length = symbols('l_L, l_U')
+
+ankle = Point('A')
+
+knee = Point('K')
+knee.set_pos(ankle, lower_leg_length * lower_leg_frame.y)
+
+hip = Point('H')
+hip.set_pos(knee, upper_leg_length * upper_leg_frame.y)
+
+# Center of mass locations
+# ------------------------
+
+lower_leg_com_length, upper_leg_com_length, torso_com_length = symbols('d_L, d_U, d_T')
+
+lower_leg_mass_center = Point('L_o')
+lower_leg_mass_center.set_pos(ankle, lower_leg_com_length * lower_leg_frame.y)
+
+upper_leg_mass_center = Point('U_o')
+upper_leg_mass_center.set_pos(knee, upper_leg_com_length * upper_leg_frame.y)
+
+torso_mass_center = Point('T_o')
+torso_mass_center.set_pos(hip, torso_com_length * torso_frame.y)
+
+# Define kinematical differential equations
+# =========================================
+
+omega1, omega2, omega3 = dynamicsymbols('omega1, omega2, omega3')
+
+time = symbols('t')
+
+kinematical_differential_equations = [omega1 - theta1.diff(time),
+                                      omega2 - theta2.diff(time),
+                                      omega3 - theta3.diff(time)]
+
+# Angular Velocities
+# ==================
+
+lower_leg_frame.set_ang_vel(inertial_frame, omega1 * inertial_frame.z)
+
+upper_leg_frame.set_ang_vel(lower_leg_frame, omega2 * lower_leg_frame.z)
+
+torso_frame.set_ang_vel(upper_leg_frame, omega3 * upper_leg_frame.z)
+
+# Linear Velocities
+# =================
+
+ankle.set_vel(inertial_frame, 0)
+
+lower_leg_mass_center.v2pt_theory(ankle, inertial_frame, lower_leg_frame)
+
+knee.v2pt_theory(ankle, inertial_frame, lower_leg_frame)
+
+upper_leg_mass_center.v2pt_theory(knee, inertial_frame, upper_leg_frame)
+
+hip.v2pt_theory(knee, inertial_frame, upper_leg_frame)
+
+torso_mass_center.v2pt_theory(hip, inertial_frame, torso_frame)
+
+# Mass
+# ====
+
+lower_leg_mass, upper_leg_mass, torso_mass = symbols('m_L, m_U, m_T')
+
+# Inertia
+# =======
+
+lower_leg_inertia, upper_leg_inertia, torso_inertia = symbols('I_Lz, I_Uz, I_Tz')
+
+lower_leg_inertia_dyadic = inertia(lower_leg_frame, 0, 0, lower_leg_inertia)
+
+lower_leg_central_inertia = (lower_leg_inertia_dyadic, lower_leg_mass_center)
+
+upper_leg_inertia_dyadic = inertia(upper_leg_frame, 0, 0, upper_leg_inertia)
+
+upper_leg_central_inertia = (upper_leg_inertia_dyadic, upper_leg_mass_center)
+
+torso_inertia_dyadic = inertia(torso_frame, 0, 0, torso_inertia)
+
+torso_central_inertia = (torso_inertia_dyadic, torso_mass_center)
+
+# Rigid Bodies
+# ============
+
+lower_leg = RigidBody('Lower Leg', lower_leg_mass_center, lower_leg_frame,
+                      lower_leg_mass, lower_leg_central_inertia)
+
+upper_leg = RigidBody('Upper Leg', upper_leg_mass_center, upper_leg_frame,
+                      upper_leg_mass, upper_leg_central_inertia)
+
+torso = RigidBody('Torso', torso_mass_center, torso_frame,
+                  torso_mass, torso_central_inertia)
+
+# Gravity
+# =======
+
+g = symbols('g')
+
+lower_leg_grav_force = (lower_leg_mass_center,
+                        -lower_leg_mass * g * inertial_frame.y)
+upper_leg_grav_force = (upper_leg_mass_center,
+                        -upper_leg_mass * g * inertial_frame.y)
+torso_grav_force = (torso_mass_center, -torso_mass * g * inertial_frame.y)
+
+# Joint Torques
+# =============
+
+ankle_torque, knee_torque, hip_torque = dynamicsymbols('T_a, T_k, T_h')
+
+lower_leg_torque = (lower_leg_frame,
+                    ankle_torque * inertial_frame.z - knee_torque *
+                    inertial_frame.z)
+
+upper_leg_torque = (upper_leg_frame,
+                    knee_torque * inertial_frame.z - hip_torque *
+                    inertial_frame.z)
+
+torso_torque = (torso_frame, hip_torque * inertial_frame.z)
+
+# Equations of Motion
+# ===================
+
+coordinates = [theta1, theta2, theta3]
+
+speeds = [omega1, omega2, omega3]
+
+kane = KanesMethod(inertial_frame,
+                   coordinates,
+                   speeds,
+                   kinematical_differential_equations)
+
+loads = [lower_leg_grav_force,
+         upper_leg_grav_force,
+         torso_grav_force,
+         lower_leg_torque,
+         upper_leg_torque,
+         torso_torque]
+
+bodies = [lower_leg, upper_leg, torso]
+
+fr, frstar = kane.kanes_equations(loads, bodies)
+
+mass_matrix = kane.mass_matrix_full
+forcing_vector = kane.forcing_full
+
+# List the symbolic arguments
+# ===========================
+
+# Constants
+# ---------
+
+constants = [lower_leg_length,
+             lower_leg_com_length,
+             lower_leg_mass,
+             lower_leg_inertia,
+             upper_leg_length,
+             upper_leg_com_length,
+             upper_leg_mass,
+             upper_leg_inertia,
+             torso_com_length,
+             torso_mass,
+             torso_inertia,
+             g]
+
+# Time Varying
+# ------------
+
+coordinates = [theta1, theta2, theta3]
+
+speeds = [omega1, omega2, omega3]
+
+specified = [ankle_torque, knee_torque, hip_torque]
+
+# Generate RHS Function
+# =====================
+
+right_hand_side = generate_ode_function(mass_matrix, forcing_vector,
+                                        constants, coordinates, speeds,
+                                        specified)
+
+# Specify Numerical Quantities
+# ============================
+
+initial_coordinates = deg2rad(5.0) * array([-1, 1, -1])
+initial_speeds = deg2rad(-5.0) * ones(len(speeds))
+x0 = concatenate((initial_coordinates, initial_speeds), axis=1)
+
+# taken from male1.txt in yeadon (maybe I should use the values in Winters).
+numerical_constants = array([0.611,  # lower_leg_length [m]
+                             0.387,  # lower_leg_com_length [m]
+                             6.769,  # lower_leg_mass [kg]
+                             0.101,  # lower_leg_inertia [kg*m^2]
+                             0.424,  # upper_leg_length [m]
+                             0.193,  # upper_leg_com_length
+                             17.01,  # upper_leg_mass [kg]
+                             0.282,  # upper_leg_inertia [kg*m^2]
+                             0.305,  # torso_com_length [m]
+                             32.44,  # torso_mass [kg]
+                             1.485,  # torso_inertia [kg*m^2]
+                             9.81],  # acceleration due to gravity [m/s^2]
+                           )
+
+args = {'constants': numerical_constants,
+        'specified': array([0.0, 0.0, 0.0])}
+
+# Simulate
+# ========
+
+frames_per_sec = 60
+final_time = 5.0
+
+t = linspace(0.0, final_time, final_time * frames_per_sec)
+
+y = odeint(right_hand_side, x0, t, args=(args,))

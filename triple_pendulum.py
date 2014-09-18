@@ -1,22 +1,14 @@
-# Double pendulum formula translated from the C code at
-# http://www.physics.usyd.edu.au/~wheat/dpend_html/solve_dpend.c
-
 from numpy import array, zeros, eye, asarray, dot, rad2deg, deg2rad, linspace, sin, cos, pi
-from numpy.linalg import inv
 from matplotlib.pyplot import plot, xlabel, ylabel, legend, rcParams
-from sympy import symbols, simplify, trigsimp
+from sympy import symbols
 from sympy.physics.mechanics import dynamicsymbols, ReferenceFrame, Point, inertia, RigidBody, KanesMethod
-from sympy.physics.vector import init_vprinting, vlatex
 import numpy as np
 import matplotlib.pyplot as plt
-import scipy.integrate as integrate
 from scipy.integrate import odeint
-from scipy.linalg import solve_continuous_are
 from pydy.codegen.code import generate_ode_function
 import matplotlib.animation as animation
 #from utils import controllable
 
-init_vprinting()
 #Sets up inertial frame as well as frames for each linkage
 inertial_frame = ReferenceFrame('I')
 r_leg_frame = ReferenceFrame('R')
@@ -26,8 +18,9 @@ l_leg_frame = ReferenceFrame('L')
 #Sets up symbols for joint angles
 theta1, theta2, theta3 = dynamicsymbols('theta1, theta2, theta3')
 
-#Orients the leg frame to the inertial frame by angle theta1
+#Orients the left leg frame to the inertial frame by angle theta1
 #and the body frame to to the leg frame by angle theta2
+#and the right leg frame to the body frame by theta3
 l_leg_frame.orient(inertial_frame, 'Axis', (theta1, inertial_frame.z))
 body_frame.orient(l_leg_frame, 'Axis', (theta2, l_leg_frame.z))
 r_leg_frame.orient(body_frame, 'Axis', (theta3, body_frame.z))
@@ -36,23 +29,19 @@ r_leg_frame.orient(body_frame, 'Axis', (theta3, body_frame.z))
 l_ankle = Point('LA')
 l_leg_length = symbols('l_L')
 l_hip = Point('LH')
-l_hip.set_pos(r_ankle, r_leg_length*r_leg_frame.y)
+l_hip.set_pos(l_ankle, l_leg_length*l_leg_frame.y)
 hip_width = symbols('h_W')
 r_hip = Point('RH')
-r_hip.set_pos(l_hip, hip_width*hip_frame.x)
-r_ankle = Point('RA')
-r_leg_length = symbols('r_L')
-r_ankle.set_pos(r_hip, -1*r_leg_lenth*hip_frame.y)
-
+r_hip.set_pos(l_hip, hip_width*body_frame.y)
 
 #Sets up the centers of mass of each of the linkages
 r_leg_com_length, body_com_length, l_leg_com_length = symbols('d_RL, d_B, d_LL')
 l_leg_mass_center = Point('LL_o')
 l_leg_mass_center.set_pos(l_ankle, l_leg_com_length*l_leg_frame.y)
 body_mass_center = Point('B_o')
-body_mass_center.set_pos(l_hip, body_com_length*hip_frame.x)
+body_mass_center.set_pos(l_hip, body_com_length*body_frame.y)
 r_leg_mass_center = Point('RL_o')
-r_leg_mass_center.set_pos(r_hip, -1*l_leg_com_length*r_leg_frame.y)
+r_leg_mass_center.set_pos(r_hip, l_leg_com_length*r_leg_frame.y)
 
 #Sets up the angular velocities
 omega1, omega2, omega3 = dynamicsymbols('omega1, omega2, omega3')
@@ -67,7 +56,7 @@ l_leg_frame.ang_vel_in(inertial_frame)
 body_frame.set_ang_vel(l_leg_frame, omega2*inertial_frame.z)
 body_frame.ang_vel_in(inertial_frame)
 r_leg_frame.set_ang_vel(body_frame, omega3*inertial_frame.z)
-r_leg_frame.ang_vel_in(inertial-frame)
+r_leg_frame.ang_vel_in(inertial_frame)
 
 #Sets up the linear velocities of the points on the linkages
 l_ankle.set_vel(inertial_frame, 0)
@@ -99,9 +88,9 @@ r_leg_inertia_dyadic = inertia(r_leg_frame, 0, 0, r_leg_inertia)
 r_leg_central_inertia = (r_leg_inertia_dyadic, r_leg_mass_center)
 
 #Defines the linkages as rigid bodies
-l_leg = RigidBody('LLeg', l_leg_mass_center, l_leg_frame, l_leg_mass, l_leg_central_inertia)
+l_leg = RigidBody('Left Leg', l_leg_mass_center, l_leg_frame, l_leg_mass, l_leg_central_inertia)
 body = RigidBody('Body', body_mass_center, body_frame, body_mass, body_central_inertia)
-r_leg = RigidBody('RLeg', r_leg_mass_center, r_leg_frame, r_leg_mass, r_leg_central_inertia)
+r_leg = RigidBody('Right Leg', r_leg_mass_center, r_leg_frame, r_leg_mass, r_leg_central_inertia)
 
 #Sets up gravity information and assigns gravity to act on mass centers
 g = symbols('g')
@@ -110,14 +99,14 @@ l_leg_grav_force = (l_leg_mass_center, l_leg_grav_force_vector)
 body_grav_force_vector = -body_mass*g*inertial_frame.y
 body_grav_force = (body_mass_center,body_grav_force_vector)
 r_leg_grav_force_vector = -r_leg_mass*g*inertial_frame.y
-r_leg_grav_force = (r_leg_mass_center, r_leg_)
+r_leg_grav_force = (r_leg_mass_center, r_leg_grav_force_vector)
 
 #Sets up joint torques
 l_ankle_torque, l_hip_torque, r_hip_torque = dynamicsymbols('T_la, T_lh, T_rh')
 l_ankle_torque_vector = l_ankle_torque*inertial_frame.z - l_hip_torque*inertial_frame.z
 l_ankle_torque = (l_leg_frame, l_ankle_torque_vector)
 
-l_hip_torque_vector = l_hip_torque*inertial_frame.z - r_hip_torque_*inertial_frame.z
+l_hip_torque_vector = l_hip_torque*inertial_frame.z - r_hip_torque*inertial_frame.z
 l_hip_torque = (body_frame, l_hip_torque_vector)
 
 r_hip_torque_vector = r_hip_torque*inertial_frame.z
@@ -141,10 +130,10 @@ loads = [l_leg_grav_force,
 bodies = [l_leg, body, r_leg]
 
 fr, frstar = kane.kanes_equations(loads, bodies)
-trigsimp(fr + frstar)
-mass_matrix = trigsimp(kane.mass_matrix_full)
 
-forcing_vector = trigsimp(kane.forcing_full)
+mass_matrix = kane.mass_matrix_full
+
+forcing_vector = kane.forcing_full
 
 rcParams['figure.figsize'] = (14.0, 6.0)
 
@@ -152,15 +141,18 @@ constants = [l_leg_length,
              l_leg_com_length,
              l_leg_mass,
              l_leg_inertia,
-             body_length
+             hip_width,
              body_com_length,
              body_mass,
              body_inertia,
-             r_leg_length,
              r_leg_com_length,
              r_leg_mass,
-             r_leg_inertia
+             r_leg_inertia,
              g]
+
+coordinates = [theta1, theta2, theta3]
+
+speeds = [omega1, omega2, omega3]
 
 #Specified contains the matrix for the input torques
 specified = [l_ankle_torque, l_hip_torque, r_hip_torque]
@@ -171,20 +163,24 @@ right_hand_side = generate_ode_function(mass_matrix, forcing_vector,
 
 #Initial Conditions for speeds and positions
 x0 = zeros(6)
-#x0[:3] = deg2rad(40.0)
+#x0[:3] = deg2rad(2.0)
 
 #Specifies numerical constants for inertial/mass properties
-numerical_constants = array([1.035,  # leg_length[m]
-                             0.58,   # leg_com_length[m]
-                             23.779, # leg_mass[kg]
-                             0.383,  # leg_inertia [kg*m^2]
-                             0.305,  # body_com_length [m]
-                             32.44,  # body_mass[kg]
-                             1.485,  # body_inertia [kg*m^2]
+numerical_constants = array([0.611,    # l_leg_length[m]
+                             0.387,    # l_leg_com_length[m]
+                             6.769,    # l_leg_mass[kg]
+                             0.101,    # l_leg_inertia [kg*m^2]
+                             0.424,    # hip_width [m]
+                             0.193,   # body_com_length [m]
+                             17.01,   # body_mass[kg]
+                             0.282,    # body_inertia [kg*m^2]
+                             0.305,    # r_leg_com_length [m]
+                             32.44,    # r_leg_mass [kg]
+                             1.485,    # r_leg_inertia [kg*m^2]
                              9.81],    # acceleration due to gravity [m/s^2]
                              )
 #Set input torques to 0
-numerical_specified = zeros(2)
+numerical_specified = zeros(3)
 
 args = {'constants': numerical_constants,
         'specified': numerical_specified}
@@ -196,55 +192,16 @@ t = linspace(0.0, final_time, final_time*frames_per_sec)
 
 right_hand_side(x0, 0.0, args)
 
-#Create dictionaries for the values for the equilibrium point of (0,0) i.e. pointing straight up
-equilibrium_point = zeros(len(coordinates + speeds))
-equilibrium_dict = dict(zip(coordinates + speeds, equilibrium_point))
-parameter_dict = dict(zip(constants, numerical_constants))
-
-#Jacobian of the forcing vector w.r.t. states and inputs
-F_A = forcing_vector.jacobian(coordinates + speeds)
-F_B = forcing_vector.jacobian(specified)
-
-#Substitute in the values for the variables in the forcing vector
-F_A = simplify(F_A.subs(equilibrium_dict))
-F_A = F_A.subs(parameter_dict)
-F_B = simplify(F_B.subs(equilibrium_dict).subs(parameter_dict))
-
-#Convert into a floating point numpy array
-F_A = array(F_A.tolist(), dtype=float)
-F_B = array(F_B.tolist(), dtype=float)
-
-M = mass_matrix.subs(equilibrium_dict)
-simplify(M)
-
-M = M.subs(parameter_dict)
-M = array(M.tolist(), dtype = float)
-
-#Compute the state A and input B values for our linearized function
-A = dot(inv(M), F_A)
-B = dot(inv(M), F_B)
-
-#Makes sure our function is controllable
-#assert controllable(A,B)
-
-Q = eye(4)
-R = eye(2)
-
-S = solve_continuous_are(A, B, Q, R)
-K = dot(dot(inv(R), B.T), S)
-
-def controller(x,t):
-  return -dot(K, x)
-
-args['specified'] = controller
-
 y = odeint(right_hand_side, x0, t, args=(args,))
 
-x1 = numerical_constants[0]*sin(y[:,0])
-y1 = numerical_constants[0]*cos(y[:,0])
+LA_x = numerical_constants[0]*sin(y[:,0])
+LA_y = numerical_constants[0]*cos(y[:,0])
 
-x2 = x1 + numerical_constants[4]*2*sin(y[:,1])
-y2 = y1 + numerical_constants[4]*2*cos(y[:,1])
+RH_x = LA_x + numerical_constants[4]*sin(y[:,1])
+RH_y = LA_y + numerical_constants[4]*cos(y[:,1])
+
+RA_x = RH_x + numerical_constants[7]*2*sin(y[:,2])
+RA_y = RH_y + numerical_constants[7]*2*cos(y[:,2])
 
 dt = 0.05
 
@@ -262,25 +219,25 @@ def init():
   return line, time_text
 
 def animate(i):
-  thisx = [0, x1[i], x2[i]]
-  thisy = [0, y1[i], y2[i]]
+  thisx = [0, LA_X[i], RH_X[i], RA_X[i]]
+  thisy = [0, LA_Y[i], RH_Y[i], RA_Y[i]]
 
   line.set_data(thisx, thisy)
   time_text.set_text(time_template%(i*dt))
   return line, time_text
 
 ani = animation.FuncAnimation(fig, animate, np.arange(1, len(y)), interval=25, blit=True, init_func=init)
-ani.save('double_pendulum.mp4')
+#ani.save('double_pendulum.mp4')
 plt.show()
 
-plot(t, rad2deg(y[:,:2]))
-xlabel('Time [s]')
-ylabel('Angle[deg]')
-legend(["${}$".format(vlatex(c)) for c in coordinates])
-plt.show()
+#plot(t, rad2deg(y[:,:3]))
+#xlabel('Time [s]')
+#ylabel('Angle[deg]')
+#legend(["${}$".format(vlatex(c)) for c in coordinates])
+#plt.show()
 
-plot(t, rad2deg(y[:, 2:]))
-xlabel('Time [s]')
-ylabel('Angular Rate [deg/s]')
-legend(["${}$".format(vlatex(s)) for s in speeds])
-plt.show()
+#plot(t, rad2deg(y[:, 3:]))
+#xlabel('Time [s]')
+#ylabel('Angular Rate [deg/s]')
+#legend(["${}$".format(vlatex(s)) for s in speeds])
+#plt.show()
