@@ -221,10 +221,11 @@ right_hand_side = generate_ode_function(mass_matrix, forcing_vector,
 # Specify Numerical Quantities
 # ============================
 
-initial_coordinates = deg2rad(20.0) * array([0, 0, 0])
+initial_coordinates = deg2rad(90.0) * array([0, 1, 2])
 
 #initial_speeds = deg2rad(-5.0) * ones(len(speeds))
 initial_speeds = zeros(len(speeds))
+
 x0 = concatenate((initial_coordinates, initial_speeds), axis=1)
 
 # taken from male1.txt in yeadon (maybe I should use the values in Winters).
@@ -291,7 +292,7 @@ def animate(i):
   return line, time_text
 
 ani = animation.FuncAnimation(fig, animate, np.arange(1, len(y)), interval=25, blit=True, init_func=init)
-#ani.save('double_pendulum.mp4')
+#ani.save('triple_pendulum.mp4')
 plt.show()
 
 
