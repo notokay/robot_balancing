@@ -1,8 +1,10 @@
-from sympy import symbols
+from sympy import symbols, simplify
 from sympy.physics.mechanics import dynamicsymbols, ReferenceFrame, Point, inertia, RigidBody, KanesMethod
 from pydy.codegen.code import generate_ode_function
-from numpy import array, linspace, deg2rad, rad2deg, ones, concatenate, sin, cos, pi, zeros
+from numpy import array, linspace, deg2rad, rad2deg, ones, concatenate, sin, cos, pi, zeros, dot, eye
+from numpy.linalg import inv
 from scipy.integrate import odeint
+from scipy.linalg import solve_continuous_are
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import plot, xlabel, ylabel, legend, rcParams
@@ -44,18 +46,20 @@ l_hip = Point('LH')
 l_hip.set_pos(l_ankle, l_leg_length * l_leg_frame.y)
 
 r_hip = Point('RH')
-r_hip.set_pos(l_hip, hip_width * body_frame.x)
+r_hip.set_pos(l_hip, hip_width * body_frame.y)
 
 # Center of mass locations
 # ------------------------
 
-l_leg_com_length, body_com_length, r_leg_com_length = symbols('d_L, d_B, d_R')
+l_leg_com_length, body_com_length, r_leg_com_length, body_com_height = symbols('d_L, d_B, d_R, d_BH')
 
 l_leg_mass_center = Point('LL_o')
 l_leg_mass_center.set_pos(l_ankle, l_leg_com_length * l_leg_frame.y)
 
 body_mass_center = Point('B_o')
-body_mass_center.set_pos(l_hip, body_com_length * body_frame.x)
+body_middle = Point('B_m')
+body_middle.set_pos(l_hip, body_com_length*body_frame.y)
+body_mass_center.set_pos(body_middle, body_com_height*body_frame.x)
 
 r_leg_mass_center = Point('RL_o')
 r_leg_mass_center.set_pos(r_hip, -1*r_leg_com_length * r_leg_frame.y)
@@ -200,6 +204,7 @@ constants = [l_leg_length,
              r_leg_com_length,
              r_leg_mass,
              r_leg_inertia,
+             body_com_height,
              g]
 
 # Time Varying
@@ -221,7 +226,7 @@ right_hand_side = generate_ode_function(mass_matrix, forcing_vector,
 # Specify Numerical Quantities
 # ============================
 
-initial_coordinates = deg2rad(90.0) * array([0, 1, 2])
+initial_coordinates = deg2rad(90.0) * array([2, 2, 2])
 
 #initial_speeds = deg2rad(-5.0) * ones(len(speeds))
 initial_speeds = zeros(len(speeds))
@@ -240,19 +245,82 @@ numerical_constants = array([1.0,  # l_leg_length [m]
                              0.3,  # r_leg_com_length [m]
                              5,  # r_leg_mass [kg]
                              0.1,  # r_leg_inertia [kg*m^2]
+                             1, #body_com_height
                              9.81],  # acceleration due to gravity [m/s^2]
                            )
 
 args = {'constants': numerical_constants,
-        'specified': array([20, 0.0, 0.0])}
+        'specified': array([0.0, 0.0, 0.0])}
 
 # Simulate
 # ========
 
 frames_per_sec = 60
-final_time = 5.0
+final_time = 10.0
 
 t = linspace(0.0, final_time, final_time * frames_per_sec)
+
+#Create dictionaries for the values for equilibrium point
+equilibrium_point = zeros(len(coordinates + speeds))
+equilibrium_point[:3] = deg2rad(180.0)
+equilibrium_dict = dict(zip(coordinates + speeds, equilibrium_point))
+parameter_dict = dict(zip(constants, numerical_constants))
+
+#Jacobian of the forcing vector w.r.t. states and inputs
+F_A = forcing_vector.jacobian(coordinates + speeds)
+F_B = forcing_vector.jacobian(specified)
+
+#Substitute in the values for the variables in the forcing vector
+F_A = F_A.subs(equilibrium_dict)
+F_A = F_A.subs(parameter_dict)
+F_B = F_B.subs(equilibrium_dict).subs(parameter_dict)
+
+#Convert into a floating point numpy array
+F_A = array(F_A.tolist(), dtype = float)
+F_B = array(F_B.tolist(), dtype = float)
+
+M = mass_matrix.subs(equilibrium_dict)
+
+M = M.subs(parameter_dict)
+M = array(M.tolist(), dtype = float)
+
+#Compute the state A and input B values for linearized function
+A = dot(inv(M), F_A)
+B = dot(inv(M), F_B)
+
+Q = 1000*eye(6)
+R = eye(3)
+
+S = solve_continuous_are(A, B, Q, R)
+K = dot(dot(inv(R), B.T), S)
+
+torque_vector = []
+time_vector = []
+output_vector = []
+diff_vector = []
+
+def controller(x, t):
+  torque_vector.append([200*sin(t), -100*sin(t),50*sin(t)] )
+  time_vector.append(t)
+  return [200*sin(t), -100*sin(t), 50*sin(t)]
+def good_controller(x, t):
+  temp = -dot(K,x)
+#  temp[0] = 0
+  torque_vector.append(temp)
+  time_vector.append(t)
+  return temp
+
+def pi_controller(x, t):
+  desired = deg2rad(90.0)*array([2,2,2])
+  diff = desired - x[:3]
+ #diff[0] = diff[0]*600
+  #diff[1] = diff[1]*200
+  #diff[2] = diff[2]*100
+  torque_vector.append(diff)
+  time_vector.append(t)
+  return diff*200
+
+#args['specified'] = good_controller
 
 y = odeint(right_hand_side, x0, t, args=(args,))
 
@@ -301,6 +369,11 @@ plot(t, rad2deg(y[:,:3]))
 xlabel('Time [s]')
 ylabel('Angle[deg]')
 legend(["${}$".format(vlatex(c)) for c in coordinates])
+plt.show()
+
+plot(time_vector, torque_vector)
+xlabel('Time [s]')
+ylabel('Angle torques')
 plt.show()
 
 plot(t, rad2deg(y[:, 3:]))

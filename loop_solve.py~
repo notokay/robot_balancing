@@ -1,8 +1,10 @@
-from sympy import symbols
+from sympy import symbols, simplify, trigsimp, solve, latex
 from sympy.physics.mechanics import dynamicsymbols, ReferenceFrame, Point, inertia, RigidBody, KanesMethod
 from pydy.codegen.code import generate_ode_function
-from numpy import array, linspace, deg2rad, rad2deg, ones, concatenate, sin, cos, pi, zeros
+from numpy import array, linspace, deg2rad, rad2deg, ones, concatenate, sin, cos, pi, zeros, dot, eye
+from numpy.linalg import inv
 from scipy.integrate import odeint
+from scipy.linalg import solve_continuous_are
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import plot, xlabel, ylabel, legend, rcParams
@@ -44,18 +46,20 @@ l_hip = Point('LH')
 l_hip.set_pos(l_ankle, l_leg_length * l_leg_frame.y)
 
 r_hip = Point('RH')
-r_hip.set_pos(l_hip, hip_width * body_frame.x)
+r_hip.set_pos(l_hip, hip_width * body_frame.y)
 
 # Center of mass locations
 # ------------------------
 
-l_leg_com_length, body_com_length, r_leg_com_length = symbols('d_L, d_B, d_R')
+l_leg_com_length, body_com_length, r_leg_com_length, body_com_height = symbols('d_L, d_B, d_R, d_BH')
 
 l_leg_mass_center = Point('LL_o')
 l_leg_mass_center.set_pos(l_ankle, l_leg_com_length * l_leg_frame.y)
 
 body_mass_center = Point('B_o')
-body_mass_center.set_pos(l_hip, body_com_length * body_frame.x)
+body_middle = Point('B_m')
+body_middle.set_pos(l_hip, body_com_length*body_frame.y)
+body_mass_center.set_pos(body_middle, body_com_height*body_frame.x)
 
 r_leg_mass_center = Point('RL_o')
 r_leg_mass_center.set_pos(r_hip, -1*r_leg_com_length * r_leg_frame.y)
@@ -200,6 +204,7 @@ constants = [l_leg_length,
              r_leg_com_length,
              r_leg_mass,
              r_leg_inertia,
+             body_com_height,
              g]
 
 # Time Varying
@@ -221,7 +226,7 @@ right_hand_side = generate_ode_function(mass_matrix, forcing_vector,
 # Specify Numerical Quantities
 # ============================
 
-initial_coordinates = deg2rad(90.0) * array([0, 1, 2])
+initial_coordinates = deg2rad(90.0) * array([2, 2, 2])
 
 #initial_speeds = deg2rad(-5.0) * ones(len(speeds))
 initial_speeds = zeros(len(speeds))
@@ -240,71 +245,25 @@ numerical_constants = array([1.0,  # l_leg_length [m]
                              0.3,  # r_leg_com_length [m]
                              5,  # r_leg_mass [kg]
                              0.1,  # r_leg_inertia [kg*m^2]
+                             1, #body_com_height
                              9.81],  # acceleration due to gravity [m/s^2]
                            )
 
-args = {'constants': numerical_constants,
-        'specified': array([20, 0.0, 0.0])}
+#Create dictionaries for the values for the values
+zero_speed_dict = dict(zip(speeds, zeros(len(speeds))))
+parameter_dict = dict(zip(constants, numerical_constants))
+torque_dict = dict(zip([l_ankle_torque], [0]))
 
-# Simulate
-# ========
+#Simplify
+fr_plus_frstar = simplify(fr) + simplify(frstar)
+fr_plus_frstar = simplify(fr_plus_frstar)
+fr_plus_frstar = trigsimp(fr_plus_frstar)
 
-frames_per_sec = 60
-final_time = 5.0
+#substitute in values
+subbed_equations = simplify(fr_plus_frstar.subs(zero_speed_dict).subs(torque_dict))
+subbed_value_equations = simplify(subbed_equations.subs(parameter_dict))
 
-t = linspace(0.0, final_time, final_time * frames_per_sec)
-
-y = odeint(right_hand_side, x0, t, args=(args,))
-
-#Set up simulation
-
-
-LA_x = numerical_constants[0]*sin(y[:,0])
-LA_y = numerical_constants[0]*cos(y[:,0])
-
-RH_x = LA_x + numerical_constants[4]*sin(y[:,1])
-RH_y = LA_y + numerical_constants[4]*cos(y[:,1])
-
-RA_x = RH_x + numerical_constants[7]*2*sin(y[:,2])
-RA_y = RH_y + numerical_constants[7]*2*cos(y[:,2])
-
-dt = 0.05
-
-fig = plt.figure()
-ax = fig.add_subplot(111, autoscale_on=False,aspect='equal', xlim = (-2, 2), ylim = (-2, 2))
-ax.grid()
-
-line, = ax.plot([], [], 'o-', lw=2)
-time_template = 'time=%.1fs'
-time_text = ax.text(0.05, 0.9, '', transform=ax.transAxes)
-
-def init():
-  line.set_data([],[])
-  time_text.set_text('')
-  return line, time_text
-
-def animate(i):
-  thisx = [0, LA_x[i], RH_x[i], RA_x[i]]
-  thisy = [0, LA_y[i], RH_y[i], RA_y[i]]
-
-  line.set_data(thisx, thisy)
-  time_text.set_text(time_template%(i*dt))
-  return line, time_text
-
-ani = animation.FuncAnimation(fig, animate, np.arange(1, len(y)), interval=25, blit=True, init_func=init)
-#ani.save('triple_pendulum.mp4')
-plt.show()
+torque_dict = solve(subbed_equations, [l_hip_torque, r_hip_torque])
+solved_dict = solve(subbed_value_equations)
 
 
-
-plot(t, rad2deg(y[:,:3]))
-xlabel('Time [s]')
-ylabel('Angle[deg]')
-legend(["${}$".format(vlatex(c)) for c in coordinates])
-plt.show()
-
-plot(t, rad2deg(y[:, 3:]))
-xlabel('Time [s]')
-ylabel('Angular Rate [deg/s]')
-legend(["${}$".format(vlatex(s)) for s in speeds])
-plt.show()

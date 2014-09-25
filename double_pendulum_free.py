@@ -128,7 +128,7 @@ constants = [leg_length,
              body_inertia,
              g]
 #Specified contains the matrix for the input torques
-specified = [ankle_torque, waist_torque]
+specified = {t:sin(t), 0}
 
 right_hand_side = generate_ode_function(mass_matrix, forcing_vector,
                                         constants,
@@ -160,7 +160,7 @@ numerical_constants = array([1.0,  # leg_length[m]
                              )
 
 #Set input torques to 0
-numerical_specified = zeros(2)
+numerical_specified = array([20,0])
 
 args = {'constants': numerical_constants,
         'specified': numerical_specified}
@@ -204,7 +204,7 @@ def animate(i):
   return line, time_text
 
 ani = animation.FuncAnimation(fig, animate, np.arange(1, len(y)), interval=25, blit=True, init_func=init)
-ani.save('double_pendulum_free.mp4')
+#ani.save('double_pendulum_free.mp4')
 plt.show()
 
 plot(t, rad2deg(y[:,:2]))

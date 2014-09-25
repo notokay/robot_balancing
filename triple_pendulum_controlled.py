@@ -1,8 +1,10 @@
 from sympy import symbols
 from sympy.physics.mechanics import dynamicsymbols, ReferenceFrame, Point, inertia, RigidBody, KanesMethod
 from pydy.codegen.code import generate_ode_function
-from numpy import array, linspace, deg2rad, rad2deg, ones, concatenate, sin, cos, pi, zeros
+from numpy import array, linspace, deg2rad, rad2deg, ones, concatenate, sin, cos, pi, zeros, dot, eye
+from numpy.linalg import inv
 from scipy.integrate import odeint
+from scipy.linalg import solve_continuous_are
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import plot, xlabel, ylabel, legend, rcParams
@@ -44,18 +46,20 @@ l_hip = Point('LH')
 l_hip.set_pos(l_ankle, l_leg_length * l_leg_frame.y)
 
 r_hip = Point('RH')
-r_hip.set_pos(l_hip, hip_width * body_frame.x)
+r_hip.set_pos(l_hip, hip_width * body_frame.y)
 
 # Center of mass locations
 # ------------------------
 
-l_leg_com_length, body_com_length, r_leg_com_length = symbols('d_L, d_B, d_R')
+l_leg_com_length, body_com_length, r_leg_com_length, body_com_height = symbols('d_L, d_B, d_R, d_BH')
 
 l_leg_mass_center = Point('LL_o')
 l_leg_mass_center.set_pos(l_ankle, l_leg_com_length * l_leg_frame.y)
 
 body_mass_center = Point('B_o')
-body_mass_center.set_pos(l_hip, body_com_length * body_frame.x)
+body_middle = Point('B_m')
+body_middle.set_pos(l_hip, body_com_length*body_frame.y)
+body_mass_center.set_pos(body_middle, body_com_height*body_frame.x)
 
 r_leg_mass_center = Point('RL_o')
 r_leg_mass_center.set_pos(r_hip, -1*r_leg_com_length * r_leg_frame.y)
@@ -200,6 +204,7 @@ constants = [l_leg_length,
              r_leg_com_length,
              r_leg_mass,
              r_leg_inertia,
+             body_com_height,
              g]
 
 # Time Varying
@@ -221,7 +226,8 @@ right_hand_side = generate_ode_function(mass_matrix, forcing_vector,
 # Specify Numerical Quantities
 # ============================
 
-initial_coordinates = deg2rad(90.0) * array([0, 1, 2])
+initial_coordinates = array([-0.0781287328725265, 0.936118326612847, -0.857989593740321])
+#initial_coordinates = array([0,0,0])
 
 #initial_speeds = deg2rad(-5.0) * ones(len(speeds))
 initial_speeds = zeros(len(speeds))
@@ -229,30 +235,88 @@ initial_speeds = zeros(len(speeds))
 x0 = concatenate((initial_coordinates, initial_speeds), axis=1)
 
 # taken from male1.txt in yeadon (maybe I should use the values in Winters).
-numerical_constants = array([1.0,  # l_leg_length [m]
-                             0.5,  # l_leg_com_length [m]
-                             5.0,  # l_leg_mass [kg]
+numerical_constants = array([1.035,  # l_leg_length [m]
+                             0.58,  # l_leg_com_length [m]
+                             23.689,  # l_leg_mass [kg]
                              0.1,  # l_leg_inertia [kg*m^2]
-                             0.5,  # hip_width [m]
-                             0.25,  # body_com_length
-                             10.0,  # body_mass [kg]
-                             0.3,  # body_inertia [kg*m^2]
-                             0.3,  # r_leg_com_length [m]
-                             5,  # r_leg_mass [kg]
+                             0.4,  # hip_width [m]
+                             0.2,  # body_com_length
+                             32.44,  # body_mass [kg]
+                             1.485,  # body_inertia [kg*m^2]
+                             0.193,  # r_leg_com_length [m]
+                             23.689,  # r_leg_mass [kg]
                              0.1,  # r_leg_inertia [kg*m^2]
+                             0.305, #body_com_height
                              9.81],  # acceleration due to gravity [m/s^2]
                            )
 
 args = {'constants': numerical_constants,
-        'specified': array([20, 0.0, 0.0])}
+        'specified': array([0.0, 0.0, 0.0])}
 
 # Simulate
 # ========
 
 frames_per_sec = 60
-final_time = 5.0
+final_time = 10.0
 
 t = linspace(0.0, final_time, final_time * frames_per_sec)
+
+#Create dictionaries for the values for equilibrium point
+equilibrium_point = zeros(len(coordinates + speeds))
+equilibrium_dict = dict(zip(coordinates + speeds, equilibrium_point))
+parameter_dict = dict(zip(constants, numerical_constants))
+
+#Jacobian of the forcing vector w.r.t. states and inputs
+F_A = forcing_vector.jacobian(coordinates + speeds)
+F_B = forcing_vector.jacobian(specified)
+
+#Substitute in the values for the variables in the forcing vector
+F_A = F_A.subs(equilibrium_dict)
+F_A = F_A.subs(parameter_dict)
+F_B = F_B.subs(equilibrium_dict).subs(parameter_dict)
+
+#Convert into a floating point numpy array
+F_A = array(F_A.tolist(), dtype = float)
+F_B = array(F_B.tolist(), dtype = float)
+
+M = mass_matrix.subs(equilibrium_dict)
+
+M = M.subs(parameter_dict)
+M = array(M.tolist(), dtype = float)
+
+#Compute the state A and input B values for linearized function
+A = dot(inv(M), F_A)
+B = dot(inv(M), F_B)
+
+Q = 300*eye(6)
+R = eye(3)
+
+S = solve_continuous_are(A, B, Q, R)
+K = dot(dot(inv(R), B.T), S)
+
+torque_vector = []
+time_vector = []
+def controller(x, t):
+  torque_vector.append([200*sin(t), -100*sin(t),50*sin(t)] )
+  time_vector.append(t)
+  return [200*sin(t), -100*sin(t), 50*sin(t)]
+def good_controller(x, t):
+  temp = -dot(K,x)
+#  temp[0] = 0
+  torque_vector.append(temp)
+  time_vector.append(t)
+  return temp
+
+def pi_controller(x, t):
+  #desired = array([0.09,0.32,0.55])
+  desired = initial_coordinates
+  diff = desired - x[:3]
+  diff = array([1, 1, 1])*diff
+  torque_vector.append(diff)
+  time_vector.append(t)
+  return array([0, -55,0])
+
+args['specified'] = pi_controller
 
 y = odeint(right_hand_side, x0, t, args=(args,))
 
@@ -265,8 +329,8 @@ LA_y = numerical_constants[0]*cos(y[:,0])
 RH_x = LA_x + numerical_constants[4]*sin(y[:,1])
 RH_y = LA_y + numerical_constants[4]*cos(y[:,1])
 
-RA_x = RH_x + numerical_constants[7]*2*sin(y[:,2])
-RA_y = RH_y + numerical_constants[7]*2*cos(y[:,2])
+RA_x = RH_x + numerical_constants[8]*2*sin(y[:,2])
+RA_y = RH_y + numerical_constants[8]*2*cos(y[:,2])
 
 dt = 0.05
 
@@ -292,15 +356,19 @@ def animate(i):
   return line, time_text
 
 ani = animation.FuncAnimation(fig, animate, np.arange(1, len(y)), interval=25, blit=True, init_func=init)
-#ani.save('triple_pendulum.mp4')
+#ani.save('triple_pendulum_bodystable_withtorque.mp4')
 plt.show()
-
-
 
 plot(t, rad2deg(y[:,:3]))
 xlabel('Time [s]')
 ylabel('Angle[deg]')
 legend(["${}$".format(vlatex(c)) for c in coordinates])
+plt.show()
+
+plot(time_vector, torque_vector)
+xlabel('Time [s]')
+ylabel('Angle torques')
+legend(["${}$".format(vlatex(ta)) for ta in specified])
 plt.show()
 
 plot(t, rad2deg(y[:, 3:]))
