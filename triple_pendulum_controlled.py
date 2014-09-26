@@ -226,8 +226,8 @@ right_hand_side = generate_ode_function(mass_matrix, forcing_vector,
 # Specify Numerical Quantities
 # ============================
 
-initial_coordinates = array([-0.0781287328725265, 0.936118326612847, -0.857989593740321])
-#initial_coordinates = array([0,0,0])
+#initial_coordinates = array([-0.0781287328725265, 0.936118326612847, -0.857989593740321])
+initial_coordinates = deg2rad(90.0)*array([0,1,2])
 
 #initial_speeds = deg2rad(-5.0) * ones(len(speeds))
 initial_speeds = zeros(len(speeds))
@@ -316,7 +316,7 @@ def pi_controller(x, t):
   time_vector.append(t)
   return array([0, -55,0])
 
-args['specified'] = pi_controller
+#args['specified'] = pi_controller
 
 y = odeint(right_hand_side, x0, t, args=(args,))
 
@@ -356,7 +356,7 @@ def animate(i):
   return line, time_text
 
 ani = animation.FuncAnimation(fig, animate, np.arange(1, len(y)), interval=25, blit=True, init_func=init)
-#ani.save('triple_pendulum_bodystable_withtorque.mp4')
+#ani.save('triple_pendulum_onefootstanding.mp4')
 plt.show()
 
 plot(t, rad2deg(y[:,:3]))
