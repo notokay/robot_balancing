@@ -1,6 +1,6 @@
 from sympy import symbols, simplify, trigsimp, solve, latex, diff, cos, sin
 from sympy.physics.mechanics import dynamicsymbols, ReferenceFrame, Point, inertia, RigidBody, KanesMethod
-from pydy.codegen.code import generate_ode_function
+#from pydy.codegen.code import generate_ode_function
 from numpy import array, linspace, deg2rad, rad2deg, ones, concatenate, pi, zeros, dot, eye
 from numpy.linalg import inv
 from scipy.integrate import odeint
@@ -220,9 +220,9 @@ specified = [l_ankle_torque, l_hip_torque, r_hip_torque]
 # Generate RHS Function
 # =====================
 
-right_hand_side = generate_ode_function(mass_matrix, forcing_vector,
-                                        constants, coordinates, speeds,
-                                        specified)
+#right_hand_side = generate_ode_function(mass_matrix, forcing_vector,
+#                                        constants, coordinates, speeds,
+#                                        specified)
 
 # Specify Numerical Quantities
 # ============================
@@ -281,7 +281,7 @@ lam_r = lambdify((theta1, theta2, theta3), forcing_solved[r_hip_torque])
 
 lam_f = lambdify((theta1, theta2, theta3), forcing_matrix[0])
 
-x = 500
+x = -0.1
 y = -1.57
 z = -1.57
 X = []
@@ -290,18 +290,19 @@ Z = []
 
 answer_vector = []
 
-threshold = 0.0001
+threshold = 0.1
 
-while x < 1.57:
-  y = 0
-  z = 0
+while x < 0.1:
+  y = -1.57
+  z = -1.57
   while y < 1.57:
-    z = 0
+    z = -1.57
     while z < 1.57:
       lam_sol = lam_f(x,y,z)
+      print([x, lam_sol, y,z])
       if(lam_sol < threshold and lam_sol > -1*threshold):
         answer_vector.append([lam_sol,lam_l(x,y,z), lam_r(x,y,z), x, y, z])
         print([lam_sol, x, y, z])
-      z = z + 0.001
-    y = y + 0.001
-  x = x + 0.001
+      z = z + 0.1
+    y = y + 0.1
+  x = x + 0.1

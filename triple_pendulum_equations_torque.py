@@ -1,6 +1,5 @@
 from sympy import symbols, simplify, trigsimp, solve, latex, diff, cos, sin, nsolve
 from sympy.physics.mechanics import dynamicsymbols, ReferenceFrame, Point, inertia, RigidBody, KanesMethod
-from pydy.codegen.code import generate_ode_function
 from numpy import array, linspace, deg2rad, rad2deg, ones, concatenate, pi, zeros, dot, eye
 from numpy.linalg import inv
 from scipy.integrate import odeint
@@ -217,13 +216,6 @@ speeds = [omega1, omega2, omega3]
 
 specified = [l_ankle_torque, l_hip_torque, r_hip_torque]
 
-# Generate RHS Function
-# =====================
-
-right_hand_side = generate_ode_function(mass_matrix, forcing_vector,
-                                        constants, coordinates, speeds,
-                                        specified)
-
 # Specify Numerical Quantities
 # ============================
 
@@ -277,13 +269,13 @@ answer_vector = []
 lhiptorque = []
 rhiptorque = []
 threshold = 0.1
-x = -60
-y = -60
+x = -120
+y = -120
 
-while (x < 60):
+while (x < 120):
   x = x + 5
-  y = 0
-  while (y < 60):
+  y = -120
+  while (y < 120):
     solution_matrix = forcing_matrix.subs(dict(zip([l_hip_torque, r_hip_torque], [x,y])))
     solution_dict = solve(solution_matrix, (sin(theta1 + theta2), sin(theta1 + theta2 + theta3), sin(theta1)))
     f1 = solution_dict[sin(theta1 + theta2)] - sin(theta1+theta2)
