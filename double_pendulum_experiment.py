@@ -12,6 +12,8 @@ import matplotlib.pyplot as plt
 import scipy.integrate as integrate
 from scipy.integrate import odeint
 from scipy.linalg import solve_continuous_are
+import matplotlib.pyplot as plt
+from matplotlib.pyplot import plot, xlabel, ylabel, legend, rcParams
 import matplotlib.animation as animation
 #from utils import controllable
 
@@ -238,6 +240,13 @@ while (angle_one < 3.14):
       X.append(angle_one)
       Y.append(angle_two)
       torvec.append(lam_w(angle_one, angle_two))
-      print([lam_sol, angle_one, angle_two, lam_w(angle_one, angle_two)])
+#      print([lam_sol, angle_one, angle_two, lam_w(angle_one, angle_two)])
     angle_two = angle_two+0.001
-  angle_one = angle_one + 0.001
+  angle_one = angle_one + 0.0001
+  print(angle_one)
+
+plt.scatter(X,Y)
+xlabel('angle_1')
+ylabel('angle_2')
+
+plt.show()

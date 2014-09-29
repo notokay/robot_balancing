@@ -226,8 +226,8 @@ right_hand_side = generate_ode_function(mass_matrix, forcing_vector,
 # Specify Numerical Quantities
 # ============================
 
-#initial_coordinates = array([-0.0781287328725265, 0.936118326612847, -0.857989593740321])
-initial_coordinates = deg2rad(90.0)*array([0,1,2])
+initial_coordinates = array([-0.1, 0.93, 2])
+#initial_coordinates = deg2rad(90.0)*array([0,1,2])
 
 #initial_speeds = deg2rad(-5.0) * ones(len(speeds))
 initial_speeds = zeros(len(speeds))
@@ -251,7 +251,7 @@ numerical_constants = array([1.035,  # l_leg_length [m]
                            )
 
 args = {'constants': numerical_constants,
-        'specified': array([0.0, 0.0, 0.0])}
+        'specified': array([0.0,0.0,0.0])}
 
 # Simulate
 # ========
@@ -308,15 +308,15 @@ def good_controller(x, t):
   return temp
 
 def pi_controller(x, t):
-  #desired = array([0.09,0.32,0.55])
+  #desired = array([-0.1, 1.33, 0.33])
   desired = initial_coordinates
   diff = desired - x[:3]
   diff = array([1, 1, 1])*diff
   torque_vector.append(diff)
   time_vector.append(t)
-  return array([0, -55,0])
+  return array([0,0,0])
 
-#args['specified'] = pi_controller
+args['specified'] = pi_controller
 
 y = odeint(right_hand_side, x0, t, args=(args,))
 

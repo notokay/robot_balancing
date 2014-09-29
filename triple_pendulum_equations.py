@@ -6,6 +6,7 @@ from numpy.linalg import inv
 from scipy.integrate import odeint
 from scipy.linalg import solve_continuous_are
 import matplotlib.animation as animation
+from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import plot, xlabel, ylabel, legend, rcParams
 import numpy as np
@@ -186,8 +187,6 @@ fr, frstar = kane.kanes_equations(loads, bodies)
 mass_matrix = kane.mass_matrix_full
 forcing_vector = kane.forcing_full
 
-rcParams['figure.figsize'] = (14.0, 6.0)
-
 # List the symbolic arguments
 # ===========================
 
@@ -281,9 +280,9 @@ lam_r = lambdify((theta1, theta2, theta3), forcing_solved[r_hip_torque])
 
 lam_f = lambdify((theta1, theta2, theta3), forcing_matrix[0])
 
-x = -0.1
-y = -1.57
-z = -1.57
+x = -1.58
+y = -3.14
+z = -3.14
 X = []
 Y = []
 Z = []
@@ -292,17 +291,30 @@ answer_vector = []
 
 threshold = 0.1
 
-while x < 0.1:
+while x < 1.58:
   y = -1.57
   z = -1.57
-  while y < 1.57:
+  while y < 3.14:
     z = -1.57
-    while z < 1.57:
+    while z < 3.14:
       lam_sol = lam_f(x,y,z)
-      print([x, lam_sol, y,z])
       if(lam_sol < threshold and lam_sol > -1*threshold):
         answer_vector.append([lam_sol,lam_l(x,y,z), lam_r(x,y,z), x, y, z])
-        print([lam_sol, x, y, z])
-      z = z + 0.1
-    y = y + 0.1
-  x = x + 0.1
+        X.append(x)
+        Y.append(y)
+        Z.append(z)
+      z = z + 0.01
+    y = y + 0.01
+  print(x)
+  x = x + 0.01
+
+fig = plt.figure()
+ax = fig.gca(projection = '3d')
+ax.scatter(X, Y, Z)
+#ax.plot_trisurf(X,Y,Z)
+
+ax.set_xlabel('theta_1')
+ax.set_ylabel('theta_2')
+ax.set_zlabel('theta_3')
+
+plt.show()
