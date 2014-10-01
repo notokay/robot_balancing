@@ -216,7 +216,7 @@ numerical_constants = array([1.035,  # l_leg_length [m]
                              0.2,  # body_com_length
                              32.44,  # body_mass [kg]
                              1.485,  # body_inertia [kg*m^2]
-                             0.193,  # r_leg_com_length [m]
+                             0.58,  # r_leg_com_length [m]
                              23.689,  # r_leg_mass [kg]
                              0.1,  # r_leg_inertia [kg*m^2]
                              0.305, #body_com_height

@@ -12,309 +12,100 @@ from matplotlib.pyplot import plot, xlabel, ylabel, legend, rcParams
 import numpy as np
 from sympy.utilities import lambdify
 from sympy.physics.vector import init_vprinting, vlatex
+from triple_pendulum_setup import theta1, theta2, theta3, omega1, omega2, omega3, l_ankle_torque, l_hip_torque, r_hip_torque, coordinates, speeds, kane, mass_matrix, forcing_vector, specified, parameter_dict, constants, numerical_constants
+from utils import det_controllable
 init_vprinting()
-
-
-# Orientations
-# ============
-
-theta1, theta2, theta3 = dynamicsymbols('theta1, theta2, theta3')
-
-inertial_frame = ReferenceFrame('I')
-
-l_leg_frame = ReferenceFrame('L')
-
-l_leg_frame.orient(inertial_frame, 'Axis', (theta1, inertial_frame.z))
-
-body_frame = ReferenceFrame('B')
-
-body_frame.orient(l_leg_frame, 'Axis', (theta2, l_leg_frame.z))
-
-r_leg_frame = ReferenceFrame('R')
-
-r_leg_frame.orient(body_frame, 'Axis', (theta3, body_frame.z))
-
-# Point Locations
-# ===============
-
-# Joints
-# ------
-
-l_leg_length, hip_width = symbols('l_L, h_W')
-
-l_ankle = Point('LA')
-
-l_hip = Point('LH')
-l_hip.set_pos(l_ankle, l_leg_length * l_leg_frame.y)
-
-r_hip = Point('RH')
-r_hip.set_pos(l_hip, hip_width * body_frame.y)
-
-# Center of mass locations
-# ------------------------
-
-l_leg_com_length, body_com_length, r_leg_com_length, body_com_height = symbols('d_L, d_B, d_R, d_BH')
-
-l_leg_mass_center = Point('LL_o')
-l_leg_mass_center.set_pos(l_ankle, l_leg_com_length * l_leg_frame.y)
-
-body_mass_center = Point('B_o')
-body_middle = Point('B_m')
-body_middle.set_pos(l_hip, body_com_length*body_frame.y)
-body_mass_center.set_pos(body_middle, body_com_height*body_frame.x)
-
-r_leg_mass_center = Point('RL_o')
-r_leg_mass_center.set_pos(r_hip, -1*r_leg_com_length * r_leg_frame.y)
-
-# Define kinematical differential equations
-# =========================================
-
-omega1, omega2, omega3 = dynamicsymbols('omega1, omega2, omega3')
-
-time = symbols('t')
-
-kinematical_differential_equations = [omega1 - theta1.diff(time),
-                                      omega2 - theta2.diff(time),
-                                      omega3 - theta3.diff(time)]
-
-# Angular Velocities
-# ==================
-
-l_leg_frame.set_ang_vel(inertial_frame, omega1 * inertial_frame.z)
-
-body_frame.set_ang_vel(l_leg_frame, omega2 * l_leg_frame.z)
-
-r_leg_frame.set_ang_vel(body_frame, omega3 * body_frame.z)
-
-# Linear Velocities
-# =================
-
-l_ankle.set_vel(inertial_frame, 0)
-
-l_leg_mass_center.v2pt_theory(l_ankle, inertial_frame, l_leg_frame)
-
-l_hip.v2pt_theory(l_ankle, inertial_frame, l_leg_frame)
-
-body_mass_center.v2pt_theory(l_hip, inertial_frame, body_frame)
-
-r_hip.v2pt_theory(l_hip, inertial_frame, body_frame)
-
-r_leg_mass_center.v2pt_theory(r_hip, inertial_frame, r_leg_frame)
-
-# Mass
-# ====
-
-l_leg_mass, body_mass, r_leg_mass = symbols('m_L, m_B, m_R')
-
-# Inertia
-# =======
-
-l_leg_inertia, body_inertia, r_leg_inertia = symbols('I_Lz, I_Bz, I_Rz')
-
-l_leg_inertia_dyadic = inertia(l_leg_frame, 0, 0, l_leg_inertia)
-
-l_leg_central_inertia = (l_leg_inertia_dyadic, l_leg_mass_center)
-
-body_inertia_dyadic = inertia(body_frame, 0, 0, body_inertia)
-
-body_central_inertia = (body_inertia_dyadic, body_mass_center)
-
-r_leg_inertia_dyadic = inertia(r_leg_frame, 0, 0, r_leg_inertia)
-
-r_leg_central_inertia = (r_leg_inertia_dyadic, r_leg_mass_center)
-
-# Rigid Bodies
-# ============
-
-l_leg = RigidBody('Lower Leg', l_leg_mass_center, l_leg_frame,
-                      l_leg_mass, l_leg_central_inertia)
-
-body = RigidBody('Upper Leg', body_mass_center, body_frame,
-                      body_mass, body_central_inertia)
-
-r_leg = RigidBody('R_Leg', r_leg_mass_center, r_leg_frame,
-                  r_leg_mass, r_leg_central_inertia)
-
-# Gravity
-# =======
-
-g = symbols('g')
-
-l_leg_grav_force = (l_leg_mass_center,
-                        -l_leg_mass * g * inertial_frame.y)
-body_grav_force = (body_mass_center,
-                        -body_mass * g * inertial_frame.y)
-r_leg_grav_force = (r_leg_mass_center, -r_leg_mass * g * inertial_frame.y)
-
-# Joint Torques
-# =============
-
-l_ankle_torque, l_hip_torque, r_hip_torque = dynamicsymbols('T_a, T_k, T_h')
-
-l_leg_torque = (l_leg_frame,
-                    l_ankle_torque * inertial_frame.z - l_hip_torque *
-                    inertial_frame.z)
-
-body_torque = (body_frame,
-                    l_hip_torque * inertial_frame.z - r_hip_torque *
-                    inertial_frame.z)
-
-r_leg_torque = (r_leg_frame, r_hip_torque * inertial_frame.z)
-
-# Equations of Motion
-# ===================
-
-coordinates = [theta1, theta2, theta3]
-
-speeds = [omega1, omega2, omega3]
-
-kane = KanesMethod(inertial_frame,
-                   coordinates,
-                   speeds,
-                   kinematical_differential_equations)
-
-loads = [l_leg_grav_force,
-         body_grav_force,
-         r_leg_grav_force,
-         l_leg_torque,
-         body_torque,
-         r_leg_torque]
-
-bodies = [l_leg, body, r_leg]
-
-fr, frstar = kane.kanes_equations(loads, bodies)
-
-mass_matrix = kane.mass_matrix_full
-forcing_vector = kane.forcing_full
-
-# List the symbolic arguments
-# ===========================
-
-# Constants
-# ---------
-
-constants = [l_leg_length,
-             l_leg_com_length,
-             l_leg_mass,
-             l_leg_inertia,
-             hip_width,
-             body_com_length,
-             body_mass,
-             body_inertia,
-             r_leg_com_length,
-             r_leg_mass,
-             r_leg_inertia,
-             body_com_height,
-             g]
-
-# Time Varying
-# ------------
-
-coordinates = [theta1, theta2, theta3]
-
-speeds = [omega1, omega2, omega3]
-
-specified = [l_ankle_torque, l_hip_torque, r_hip_torque]
-
-# Generate RHS Function
-# =====================
-
-#right_hand_side = generate_ode_function(mass_matrix, forcing_vector,
-#                                        constants, coordinates, speeds,
-#                                        specified)
-
-# Specify Numerical Quantities
-# ============================
-
-initial_coordinates = deg2rad(90.0) * array([2, 2, 2])
-
-#initial_speeds = deg2rad(-5.0) * ones(len(speeds))
-initial_speeds = zeros(len(speeds))
-
-x0 = concatenate((initial_coordinates, initial_speeds), axis=1)
-
-# taken from male1.txt in yeadon (maybe I should use the values in Winters).
-numerical_constants = array([1.035,  # l_leg_length [m]
-                             0.58,  # l_leg_com_length [m]
-                             23.689,  # l_leg_mass [kg]
-                             0.1,  # l_leg_inertia [kg*m^2]
-                             0.4,  # hip_width [m]
-                             0.2,  # body_com_length
-                             32.44,  # body_mass [kg]
-                             1.485,  # body_inertia [kg*m^2]
-                             0.193,  # r_leg_com_length [m]
-                             23.689,  # r_leg_mass [kg]
-                             0.1,  # r_leg_inertia [kg*m^2]
-                             0.305, #body_com_height
-                             9.81],  # acceleration due to gravity [m/s^2]
-                           )
-
-#Create dictionaries for the values for the values
-zero_speed_dict = dict(zip(speeds, zeros(len(speeds))))
-parameter_dict = dict(zip(constants, numerical_constants))
-torque_dict = dict(zip([l_ankle_torque], [0]))
-
-#Simplify
-#fr_plus_frstar = simplify(fr) + simplify(frstar)
-#fr_plus_frstar = simplify(fr_plus_frstar)
-#fr_plus_frstar = trigsimp(fr_plus_frstar)
-
-#substitute in values
-#subbed_equations = simplify(fr_plus_frstar.subs(zero_speed_dict).subs(torque_dict))
-#subbed_value_equations = simplify(subbed_equations.subs(parameter_dict))
-
-#torque_answers_dict = solve(subbed_equations, [l_hip_torque, r_hip_torque])
-#solved_dict = solve(subbed_value_equations, [l_hip_torque, r_hip_torque, theta1])
-
-forcing_matrix = kane.forcing
-
-forcing_matrix = simplify(forcing_matrix)
-
-forcing_matrix = simplify(forcing_matrix.subs(zero_speed_dict).subs(parameter_dict).subs(torque_dict))
-
-forcing_solved = solve(forcing_matrix, [l_hip_torque, r_hip_torque, sin(theta1)])
-
-lam_l = lambdify((theta1, theta2, theta3), forcing_solved[l_hip_torque])
-
-lam_r = lambdify((theta1, theta2, theta3), forcing_solved[r_hip_torque])
-
-lam_f = lambdify((theta1, theta2, theta3), forcing_matrix[0])
-
-x = -1.58
-y = -3.14
-z = -3.14
-X = []
-Y = []
-Z = []
+import pickle
+
+inputx = open('triple_pendulum_angle_one_lots.pkl', 'rb')
+inputy = open('triple_pendulum_angle_two_lots.pkl', 'rb')
+inputz = open('triple_pendulum_angle_three_lots.pkl', 'rb')
+
+X = pickle.load(inputx)
+Y = pickle.load(inputy)
+Z = pickle.load(inputz)
+
+inputx.close()
+inputy.close()
+inputz.close()
 
 answer_vector = []
 
-threshold = 0.1
+for x, y, z in zip(X,Y,Z):
+  answer_vector.append([x,y,z])
+print("answer_vector done")
+#Linearization
+equilibrium_points = []
 
-while x < 1.58:
-  y = -1.57
-  z = -1.57
-  while y < 3.14:
-    z = -1.57
-    while z < 3.14:
-      lam_sol = lam_f(x,y,z)
-      if(lam_sol < threshold and lam_sol > -1*threshold):
-        answer_vector.append([lam_sol,lam_l(x,y,z), lam_r(x,y,z), x, y, z])
-        X.append(x)
-        Y.append(y)
-        Z.append(z)
-      z = z + 0.01
-    y = y + 0.01
-  print(x)
-  x = x + 0.01
+for element in answer_vector:
+  equilibrium_points.append(concatenate((element, zeros(len(speeds))), axis=1))
+print("equilibrium_points done")
+equilibrium_dict = []
 
-fig = plt.figure()
-ax = fig.gca(projection = '3d')
-ax.scatter(X, Y, Z)
-#ax.plot_trisurf(X,Y,Z)
+for element in equilibrium_points:
+  equilibrium_dict.append(dict(zip(coordinates + speeds, element)))
+print("equilibrium_dict done")
+tor_dict = dict(zip([l_ankle_torque], [0]))
+#Jacobian fo forcing vector w.r.t. states and inputs
+F_A = forcing_vector.jacobian(coordinates + speeds)
+F_B = forcing_vector.jacobian(specified)
+F_B_test = forcing_vector.subs(tor_dict).jacobian(specified)
+print("jacobian done")
+#Substitute in values for the variables in the forcing vector
+F_A = F_A.subs(parameter_dict)
+F_B = F_B.subs(parameter_dict)
+F_B_test = F_B_test.subs(parameter_dict)
 
-ax.set_xlabel('theta_1')
-ax.set_ylabel('theta_2')
-ax.set_zlabel('theta_3')
+print("subs done")
+forcing_a = []
+forcing_b = []
+forcing_b_test = []
+forcing_b_two = []
+forcing_b_three = []
+M = []
 
-plt.show()
+#Create the vectors storing jacobians about every equilibrium point
+for element in equilibrium_dict:
+  forcing_a.append(F_A.subs(element))
+  forcing_b_two.append(F_B.subs(element)[:,1])
+  forcing_b_three.append(F_B.subs(element)[:,2])
+  M.append(mass_matrix.subs(element))
+print("forcing done")
+for i in range(len(M)):
+  M[i] = M[i].subs(parameter_dict)
+  M[i] = array(M[i].tolist(), dtype = float)
+  forcing_b_two[i] = array(forcing_b_two[i].tolist(), dtype = float)
+  forcing_b_three[i] = array(forcing_b_three[i].tolist(), dtype = float)
+  forcing_a[i] = array(forcing_a[i].tolist(), dtype = float)
+print("m done")
+#state A and input B values for linearized functions
+A = []
+B = []
+B_test = []
+B_two = []
+B_three = []
+controllability_det_test = []
+controllability_det = []
+controllability_det_two = []
+controllability_det_three = []
+
+for m, fa in zip(M, forcing_a):
+  A.append(dot(inv(m), fa))
+print("fa done")
+for m, fb2, fb3 in zip(M, forcing_b_two, forcing_b_three):
+  B_two.append(dot(inv(m), fb2))
+  B_three.append(dot(inv(m), fb3))
+print("fb done")
+#calculate determinant of controllability matrix
+for a,b2,b3 in zip(A,B_two, B_three):
+  controllability_det_two.append(det_controllable(a,b2))
+  controllability_det_three.append(det_controllable(a,b3))
+
+outputdet2 = open('triple_pen_controllability_angle_two_lots.pkl', 'wb')
+outputdet3 = open('triple_pen_controllability_angle_three_lots.pkl','wb')
+
+pickle.dump(controllability_det_two, outputdet2)
+pickle.dump(controllability_det_three, outputdet3)
+
+outputdet2.close()
+outputdet3.close()  
