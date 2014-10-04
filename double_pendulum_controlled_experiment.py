@@ -25,16 +25,16 @@ right_hand_side = generate_ode_function(mass_matrix, forcing_vector,
 
 #Initial Conditions for speeds and positions
 x0 = zeros(4)
-x0[:2] = deg2rad(-2.659)
-x0[1] = deg2rad(0.0)
+x0[0] = deg2rad(0.0)
+x0[1] = deg2rad(3.0)
 #Specifies numerical constants for inertial/mass properties
-numerical_constants = array([.5,  # leg_length[m]
-                             0.25,   # leg_com_length[m]
-                             7.0, # leg_mass[kg]
-                             0.58,  # leg_inertia [kg*m^2]
-                             0.375,  # body_com_length [m]
-                             8.0,  # body_mass[kg]
-                             0.66,  # body_inertia [kg*m^2]
+numerical_constants = array([1.035,  # leg_length[m]
+                             0.58,   # leg_com_length[m]
+                             23.779, # leg_mass[kg]
+                             0.383,  # leg_inertia [kg*m^2]
+                             0.305,  # body_com_length [m]
+                             32.44,  # body_mass[kg]
+                             1.485,  # body_inertia [kg*m^2]
                              9.81],    # acceleration due to gravity [m/s^2]
                              )
 #Set input torques to 0
@@ -83,8 +83,8 @@ B = dot(inv(M), F_B)
 #Makes sure our function is controllable
 #assert controllable(A,B)
 
-Q = 0.00000000001*eye(4)
-R = 0.1*eye(2)
+Q = eye(4)
+R = eye(2)
 
 S = solve_continuous_are(A, B, Q, R)
 K = dot(dot(inv(R), B.T), S)
@@ -93,12 +93,21 @@ torque_vector = []
 time_vector = []
 
 def controller(x,t):
-  torque_vector.append(-dot(K,x))
+  outputsig = -dot(K,x)
+  outputsig[0] = 3*sin(20*t)
+  torque_vector.append(outputsig)
   time_vector.append(t)
-  print(-dot(K,x))
-  return -dot(K,x)
+  return outputsig
 
-#args['specified'] = controller
+def pid_controller(x,t):
+  diff = x0[:2] - x[:2]
+  diff[1] = diff[1]+diff[0]
+  diff[0]=0
+  torque_vector.append(diff)
+  time_vector.append(t)
+  return -100*diff
+
+args['specified'] = controller
 
 y = odeint(right_hand_side, x0, t, args=(args,))
 
@@ -132,7 +141,7 @@ def animate(i):
   return line, time_text
 
 ani = animation.FuncAnimation(fig, animate, np.arange(1, len(y)), interval=25, blit=True, init_func=init)
-ani.save('acrobot_uncontrolled_-2.69_0.mp4')
+#ani.save('acrobot_uncontrolled_-2.69_0.mp4')
 plt.show()
 
 plot(t, rad2deg(y[:,:2]))

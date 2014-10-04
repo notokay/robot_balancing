@@ -1,1 +1,0 @@
-/home/tommy/my_repositories/robot_balancing/triple_pendulum_uncontrolled_regions (copy).py

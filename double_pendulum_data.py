@@ -38,8 +38,8 @@ waist_eq = -1*(num_eq[1] - waist_torque)
 lam_f = lambdify((theta1, theta2),sin_eq)
 lam_w = lambdify((theta1, theta2), waist_eq)
 
-angle_one = -3.14
-angle_two = -3.14
+angle_one = -0.22
+angle_two = -2.35
 X = []
 Y = []
 torvec = []
@@ -47,24 +47,28 @@ answer_vector = []
 
 threshold = 0.0001
 
-while (angle_one < 3.14):
-  angle_two = -3.14
-  while (angle_two < 3.14):
+while (angle_one < 0.22):
+  angle_two = -2.35
+  while (angle_two < 2.35):
     lam_sol = lam_f(angle_one, angle_two)
     if(lam_sol < threshold and lam_sol > -1*threshold):
       answer_vector.append([angle_one, angle_two])
       X.append(angle_one)
       Y.append(angle_two)
       torvec.append(lam_w(angle_one, angle_two))
-    angle_two = angle_two+1
-  angle_one = angle_one + 1
+    angle_two = angle_two+0.0001
+  angle_one = angle_one + 0.0001
   print(angle_one)
 
-#outputx = open('double_pen_angle_1.pkl', 'wb')
-#outputy = open('double_pen_angle_2.pkl', 'wb')
+outputa2 = open('double_pen_angle_2_zoom.pkl', 'wb')
+outputa1 = open('double_pen_angle_1_zoom.pkl', 'wb')
+outputt = open('double_pen_equil_torques_zoom.pkl','wb')
 
-#pickle.dump(X, outputx)
-#pickle.dump(Y, outputy)
+pickle.dump(X, outputa1)
+pickle.dump(Y, outputa2)
+pickle.dump(torvec, outputt)
 
-#outputx.close()
-#outputy.close()
+outputt.close()
+outputa2.close()
+outputa1.close()
+

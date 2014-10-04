@@ -19,8 +19,8 @@ from utils import det_controllable
 from double_pendulum_setup import speeds, coordinates, parameter_dict, forcing_vector, specified, mass_matrix, ankle_torque
 import pickle
 
-inputx = open('double_pen_angle_1.pkl', 'rb')
-inputy = open('double_pen_angle_2.pkl', 'rb')
+inputx = open('double_pen_angle_1_zoom.pkl', 'rb')
+inputy = open('double_pen_angle_2_zoom.pkl', 'rb')
 
 X = pickle.load(inputx)
 Y = pickle.load(inputy)
@@ -82,9 +82,9 @@ for m, fb, fb2 in zip(M, forcing_b, forcing_b2):
   B.append(dot(inv(m), fb))
   B2.append(dot(inv(m), fb2))
 
-outputA = open('double_pen_linearized_A.pkl','wb')
-outputB = open('double_pen_linearized_B.pkl','wb')
-outputB2 = open('double_pen_linearized_B2.pkl','wb')
+outputA = open('double_pen_linearized_A_zoom.pkl','wb')
+outputB = open('double_pen_linearized_B_zoom.pkl','wb')
+outputB2 = open('double_pen_linearized_B2_zoom.pkl','wb')
 
 pickle.dump(A, outputA)
 pickle.dump(B, outputB)
