@@ -27,8 +27,8 @@ right_hand_side = generate_ode_function(mass_matrix, forcing_vector,
 x0 = zeros(4)
 #x0[0] = 
 #x0[1] = 0.2
-x0[0] = 0
-x0[1] = 0.15
+x0[0] = 0.0
+x0[1] = 0.0
 #Specifies numerical constants for inertial/mass properties
 numerical_constants = array([1.035,  # leg_length[m]
                              0.58,   # leg_com_length[m]
@@ -122,37 +122,27 @@ curr_vector = []
 def test_controller(x,t):
   global lasttime
   global lastk
-  global lasttor
-  if(t == 0.0):
-    idx = (np.abs(angle_1 - x[0])).argmin()
-    k = K[idx]
-    print('first idx is ')
-    print(idx)
-    print(x[0])
-    lastk = k
-    time_vector.append(t)
-    lasttime = t
-    returnval = -dot(k,x)
-    lasttor = torques[idx]
-    returnval[1] = returnval[1] + torques[idx]
-    torque_vector.append(returnval)
-    return returnval
-  if(t > (lasttime + 0.1)):
-    lasttime = t
-    idx = (np.abs(angle_1 - x[0])).argmin()
-    k = K[idx]
-    lastk = k
-    print(idx)
-    lasttor = torques[idx]
-    returnval = -dot(k,x)
-    returnval[1] = returnval[1] + torques[idx]
-    torque_vector.append(returnval)
-    time_vector.append(t)
-    return returnval
-  returnval = -dot(lastk,x)
-  returnval[1] = lasttor + returnval[1]
+  global counter
+  global lastidx
+  torquelim = 200
+  if(counter == 0):
+    lastidx = np.abs(angle_1-x[0]).argmin()
+    counter = counter + 1
+    print("first round")
+    idx = lastidx
+  else:
+    idx = lastidx
+  returnval = -dot(K[idx],x)
+  tracking_vector.append(t)
+  returnval[0] = 0
+  if(returnval[1] > torquelim):
+    returnval[1] = torquelim
+  if(returnval[1] < -1*torquelim):
+    returnval[1] = -1*torquelim
+  if(t > 0.5 and t < 2.00):
+    returnval[0] = 4
+    returnval[1] = returnval[1] - 4
   torque_vector.append(returnval)
-  print(t)
   time_vector.append(t)
   return returnval
 def stay_controller(x,t):
@@ -209,12 +199,12 @@ def zero_controller(x,t):
     returnval = -dot(K[lastidx],x)
     print("first round")
     print(lastidx)
-  if(x[2] < 1  and x[2] > -1):
+  if(x[2] < 0.2  and x[2] > -0.2):
     idx = (np.abs(angle_1 - x[0])).argmin()
-    if(idx > 91):
-      idx = idx - 2
-    if(idx < 91):
-      idx = idx + 2
+    if((idx + 5) > 91):
+      idx = idx - 4
+    if((idx - 5) < 91):
+      idx = idx + 4
     lastidx = idx
     returnval = -dot(K[idx], x)
     idx_vector.append(lastidx)
@@ -239,9 +229,9 @@ def zero_controller(x,t):
     #if(returnval[0] > 100):
     #  returnval[0] = 100
     returnval[1] = 0
-#  if(t > 0.4 and t < 0.55):
-#    returnval[0] = 20
-#    returnval[1] = returnval[1] - 10
+  if(t > 0.5 and t < 2.00):
+    returnval[0] = 4
+    returnval[1] = returnval[1] - 4
 #  if(t > 1.0 and t < 1.15):
 #    returnval[0] = 10
 #  if(t > 1.3 and t < 1.45):
@@ -338,7 +328,7 @@ def trim_controller(x,t):
   idx = np.abs(angle_1 - x[0]).argmin()
   return [0, torques[idx]]
 
-args['specified'] = zero_controller
+args['specified'] = test_controller
 
 y = odeint(right_hand_side, x0, t, args=(args,))
 
@@ -372,7 +362,7 @@ def animate(i):
   return line, time_text
 
 ani = animation.FuncAnimation(fig, animate, np.arange(1, len(y)), interval=25, blit=True, init_func=init)
-#ani.save('acrobot_zeroc_0_0_disturbance.mp4')
+ani.save('acrobot_zeroc_0_0_disturbance_initial_K.mp4')
 plt.show()
 
 plot(t, rad2deg(y[:,:2]))
@@ -382,7 +372,7 @@ legend(["${}$".format(vlatex(c)) for c in coordinates])
 plt.show()
 
 plot(time_vector, tracking_vector)
-plot(time_vector, curr_vector)
+#plot(time_vector, curr_vector)
 xlabel('Time')
 ylabel('angle')
 plt.show()
