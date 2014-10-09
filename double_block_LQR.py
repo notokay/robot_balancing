@@ -1,6 +1,3 @@
-# Double pendulum formula translated from the C code at
-# http://www.physics.usyd.edu.au/~wheat/dpend_html/solve_dpend.c
-
 from numpy import array, zeros, eye, asarray, dot, rad2deg, deg2rad, linspace, sin, cos, pi, concatenate, dot
 from numpy.linalg import inv
 from matplotlib.pyplot import plot, xlabel, ylabel, legend, rcParams
@@ -16,13 +13,12 @@ import matplotlib.pyplot as plt
 from matplotlib.pyplot import plot, xlabel, ylabel, legend, rcParams
 import matplotlib.animation as animation
 from utils import det_controllable
-from double_pendulum_setup import speeds, coordinates, parameter_dict, forcing_vector, specified, mass_matrix, ankle_torque
 import pickle
 
-inputA = open('double_pen_linearized_A_zoom.pkl','rb')
-inputB = open('double_pen_linearized_B_zoom.pkl','rb')
-input_one = open('double_pen_angle_1_zoom.pkl','rb')
-input_two = open('double_pen_angle_2_zoom.pkl','rb')
+inputA = open('double_block_linearized_A.pkl','rb')
+inputB = open('double_block_linearized_B.pkl','rb')
+input_one = open('double_block_angle_1_zoom.pkl','rb')
+input_two = open('double_block_angle_2_zoom.pkl','rb')
 
 A = pickle.load(inputA)
 B = pickle.load(inputB)
@@ -34,17 +30,26 @@ inputB.close()
 input_one.close()
 input_two.close()
 
-Q = ((1/0.6)**2)*eye(4)
+Q = eye(4)
+Q[0][0] = ((1/0.6)**2)
+Q[1][1] = ((1/0.6)**2)
+Q[2][2] = ((1/0.6)**2)
+Q[3][3] = ((1/0.6)**2)
+#Q[4][4] = ((1/0.0001)**2)
+#Q[5][5] = ((1/0.0001)**2)
 R = eye(2)
+R[1][1] = (1/.01)**2
+R[0][0] = ((1/0.01)**2)
+#R[2][2] = ((1/0.005)**2)
 
 K = []
 
-for a,b,angle_1, angle_2 in zip(A,B,theta1, theta2):
+for a,b in zip(A,B):
   S = solve_continuous_are(a,b,Q,R)
   K.append(dot(dot(inv(R), b.T), S))
 
-#outputK = open('double_pen_LQR_K_zoom.pkl', 'wb')
+outputK = open('double_block_LQR_K.pkl', 'wb')
 
-#pickle.dump(K,outputK)
+pickle.dump(K,outputK)
 
-#outputK.close()
+outputK.close()

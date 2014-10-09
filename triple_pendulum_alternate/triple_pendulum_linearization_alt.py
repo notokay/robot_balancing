@@ -12,8 +12,7 @@ from matplotlib.pyplot import plot, xlabel, ylabel, legend, rcParams
 import numpy as np
 from sympy.utilities import lambdify
 from sympy.physics.vector import init_vprinting, vlatex
-from triple_pendulum_setup import theta1, theta2, theta3, omega1, omega2, omega3, l_ankle_torque, l_hip_torque, r_hip_torque, coordinates, speeds, kane, mass_matrix, forcing_vector, specified, parameter_dict, constants, numerical_constants
-from utils import det_controllable
+from triple_pendulum_setup_alt import theta1, theta2, theta3, omega1, omega2, omega3, l_ankle_torque, l_hip_torque, r_hip_torque, coordinates, speeds, kane, mass_matrix, forcing_vector, specified, parameter_dict, constants, numerical_constants
 init_vprinting()
 import pickle
 

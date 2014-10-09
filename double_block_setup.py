@@ -1,12 +1,13 @@
 from sympy.physics.mechanics import dynamicsymbols, ReferenceFrame, Point, inertia, RigidBody, KanesMethod
 from sympy import symbols
+from sympy import pi
 from numpy import array,  zeros
 import numpy as np
 
 # Orientations
 # ============
 
-theta1, theta2, theta3 = dynamicsymbols('theta1, theta2, theta3')
+theta1, theta2 = dynamicsymbols('theta1, theta2')
 
 inertial_frame = ReferenceFrame('I')
 
@@ -17,10 +18,6 @@ l_leg_frame.orient(inertial_frame, 'Axis', (theta1, inertial_frame.z))
 body_frame = ReferenceFrame('B')
 
 body_frame.orient(l_leg_frame, 'Axis', (theta2, l_leg_frame.z))
-
-r_leg_frame = ReferenceFrame('R')
-
-r_leg_frame.orient(body_frame, 'Axis', (theta3, body_frame.z))
 
 # Point Locations
 # ===============
@@ -36,7 +33,7 @@ l_hip = Point('LH')
 l_hip.set_pos(l_ankle, l_leg_length * l_leg_frame.y)
 
 r_hip = Point('RH')
-r_hip.set_pos(l_hip, hip_width * body_frame.y)
+r_hip.set_pos(l_hip, -1*hip_width * body_frame.x)
 
 # Center of mass locations
 # ------------------------
@@ -47,23 +44,20 @@ l_leg_mass_center = Point('LL_o')
 l_leg_mass_center.set_pos(l_ankle, l_leg_com_length * l_leg_frame.y)
 
 body_mass_center = Point('B_o')
-body_middle = Point('B_m')
-body_middle.set_pos(l_hip, body_com_length*body_frame.y)
-body_mass_center.set_pos(body_middle, body_com_height*body_frame.x)
+body_mass_center.set_pos(l_hip, body_com_height*body_frame.y)
 
 r_leg_mass_center = Point('RL_o')
-r_leg_mass_center.set_pos(r_hip, r_leg_com_length * r_leg_frame.y)
+r_leg_mass_center.set_pos(r_hip, -1*r_leg_com_length * body_frame.y)
 
 # Define kinematical differential equations
 # =========================================
 
-omega1, omega2, omega3 = dynamicsymbols('omega1, omega2, omega3')
+omega1, omega2 = dynamicsymbols('omega1, omega2')
 
 time = symbols('t')
 
 kinematical_differential_equations = [omega1 - theta1.diff(time),
-                                      omega2 - theta2.diff(time),
-                                      omega3 - theta3.diff(time)]
+                                      omega2 - theta2.diff(time)]
 
 # Angular Velocities
 # ==================
@@ -71,8 +65,6 @@ kinematical_differential_equations = [omega1 - theta1.diff(time),
 l_leg_frame.set_ang_vel(inertial_frame, omega1 * inertial_frame.z)
 
 body_frame.set_ang_vel(l_leg_frame, omega2 * l_leg_frame.z)
-
-r_leg_frame.set_ang_vel(body_frame, omega3 * body_frame.z)
 
 # Linear Velocities
 # =================
@@ -83,11 +75,11 @@ l_leg_mass_center.v2pt_theory(l_ankle, inertial_frame, l_leg_frame)
 
 l_hip.v2pt_theory(l_ankle, inertial_frame, l_leg_frame)
 
-body_mass_center.v2pt_theory(l_hip, inertial_frame, body_frame)
-
 r_hip.v2pt_theory(l_hip, inertial_frame, body_frame)
 
-r_leg_mass_center.v2pt_theory(r_hip, inertial_frame, r_leg_frame)
+body_mass_center.v2pt_theory(l_hip, inertial_frame, body_frame)
+
+r_leg_mass_center.v2pt_theory(r_hip, inertial_frame, body_frame)
 
 # Mass
 # ====
@@ -107,7 +99,7 @@ body_inertia_dyadic = inertia(body_frame, 0, 0, body_inertia)
 
 body_central_inertia = (body_inertia_dyadic, body_mass_center)
 
-r_leg_inertia_dyadic = inertia(r_leg_frame, 0, 0, r_leg_inertia)
+r_leg_inertia_dyadic = inertia(body_frame, 0, 0, r_leg_inertia)
 
 r_leg_central_inertia = (r_leg_inertia_dyadic, r_leg_mass_center)
 
@@ -120,7 +112,7 @@ l_leg = RigidBody('Lower Leg', l_leg_mass_center, l_leg_frame,
 body = RigidBody('Upper Leg', body_mass_center, body_frame,
                       body_mass, body_central_inertia)
 
-r_leg = RigidBody('R_Leg', r_leg_mass_center, r_leg_frame,
+r_leg = RigidBody('R_Leg', r_leg_mass_center, body_frame,
                   r_leg_mass, r_leg_central_inertia)
 
 # Gravity
@@ -144,17 +136,14 @@ l_leg_torque = (l_leg_frame,
                     inertial_frame.z)
 
 body_torque = (body_frame,
-                    l_hip_torque * inertial_frame.z - r_hip_torque *
-                    inertial_frame.z)
-
-r_leg_torque = (r_leg_frame, r_hip_torque * inertial_frame.z)
+                    l_hip_torque * inertial_frame.z)
 
 # Equations of Motion
 # ===================
 
-coordinates = [theta1, theta2, theta3]
+coordinates = [theta1, theta2]
 
-speeds = [omega1, omega2, omega3]
+speeds = [omega1, omega2]
 
 kane = KanesMethod(inertial_frame,
                    coordinates,
@@ -165,8 +154,7 @@ loads = [l_leg_grav_force,
          body_grav_force,
          r_leg_grav_force,
          l_leg_torque,
-         body_torque,
-         r_leg_torque]
+         body_torque]
 
 bodies = [l_leg, body, r_leg]
 
@@ -198,11 +186,11 @@ constants = [l_leg_length,
 # Time Varying
 # ------------
 
-coordinates = [theta1, theta2, theta3]
+coordinates = [theta1, theta2]
 
-speeds = [omega1, omega2, omega3]
+speeds = [omega1, omega2]
 
-specified = [l_ankle_torque, l_hip_torque, r_hip_torque]
+specified = [l_ankle_torque, l_hip_torque]
 
 # Specify Numerical Quantities
 # ============================
@@ -234,9 +222,9 @@ numerical_constants = array([0.8,  # l_leg_length [m]
                              50.0,  # body_mass [kg]
                              8.1,  # body_inertia [kg*m^2]
                              0.4,  # r_leg_com_length [m]
-                             20.0,  # r_leg_mass [kg]
+                             1.0,  # r_leg_mass [kg]
                              4.26667,  # r_leg_inertia [kg*m^2]
-                             0.35, #body_com_height
+                             0.5, #body_com_height
                              9.81],  # acceleration due to gravity [m/s^2]
                            )
 

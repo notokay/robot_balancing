@@ -16,35 +16,34 @@ import matplotlib.pyplot as plt
 from matplotlib.pyplot import plot, xlabel, ylabel, legend, rcParams
 import matplotlib.animation as animation
 from utils import det_controllable
-from double_pendulum_setup import speeds, coordinates, parameter_dict, forcing_vector, specified, mass_matrix, ankle_torque
 import pickle
+#from utils import controllable
 
-inputA = open('double_pen_linearized_A_zoom.pkl','rb')
-inputB = open('double_pen_linearized_B_zoom.pkl','rb')
-input_one = open('double_pen_angle_1_zoom.pkl','rb')
-input_two = open('double_pen_angle_2_zoom.pkl','rb')
+init_vprinting()
 
-A = pickle.load(inputA)
-B = pickle.load(inputB)
-theta1 = pickle.load(input_one)
-theta2 = pickle.load(input_two)
+inputA = open('double_block_linearized_A_full.pkl', 'rb')
+inputB = open('double_block_linearized_B_full.pkl', 'rb')
+inputa2 = open('double_block_angle_two.pkl','rb')
 
+linearA = pickle.load(inputA)
+linearB = pickle.load(inputB)
+angle_2 = pickle.load(inputa2)
 inputA.close()
 inputB.close()
-input_one.close()
-input_two.close()
+inputa2.close()
 
-Q = ((1/0.6)**2)*eye(4)
-R = eye(2)
+B = []
 
-K = []
+for b in linearB:
+    B.append(b[:,1].reshape(4,1))
+    
 
-for a,b,angle_1, angle_2 in zip(A,B,theta1, theta2):
-  S = solve_continuous_are(a,b,Q,R)
-  K.append(dot(dot(inv(R), b.T), S))
+controllability_det = []
 
-#outputK = open('double_pen_LQR_K_zoom.pkl', 'wb')
+for a,b in zip(linearA,B):
+    controllability_det.append(det_controllable(a,b))
 
-#pickle.dump(K,outputK)
-
-#outputK.close()
+fig = plt.figure()
+plt.grid(True)
+plt.scatter(angle_2, controllability_det)
+plt.show()

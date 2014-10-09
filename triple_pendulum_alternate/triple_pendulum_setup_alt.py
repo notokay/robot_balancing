@@ -36,7 +36,7 @@ l_hip = Point('LH')
 l_hip.set_pos(l_ankle, l_leg_length * l_leg_frame.y)
 
 r_hip = Point('RH')
-r_hip.set_pos(l_hip, hip_width * body_frame.y)
+r_hip.set_pos(l_hip, hip_width * body_frame.x)
 
 # Center of mass locations
 # ------------------------
@@ -48,11 +48,11 @@ l_leg_mass_center.set_pos(l_ankle, l_leg_com_length * l_leg_frame.y)
 
 body_mass_center = Point('B_o')
 body_middle = Point('B_m')
-body_middle.set_pos(l_hip, body_com_length*body_frame.y)
-body_mass_center.set_pos(body_middle, body_com_height*body_frame.x)
+body_middle.set_pos(l_hip, body_com_length*body_frame.x)
+body_mass_center.set_pos(body_middle, body_com_height*body_frame.y)
 
 r_leg_mass_center = Point('RL_o')
-r_leg_mass_center.set_pos(r_hip, r_leg_com_length * r_leg_frame.y)
+r_leg_mass_center.set_pos(r_hip, -1*r_leg_com_length * r_leg_frame.y)
 
 # Define kinematical differential equations
 # =========================================

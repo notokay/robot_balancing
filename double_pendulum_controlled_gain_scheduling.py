@@ -25,10 +25,10 @@ right_hand_side = generate_ode_function(mass_matrix, forcing_vector,
 
 #Initial Conditions for speeds and positions
 x0 = zeros(4)
-x0[0] = deg2rad(-1.0)
-x0[1] = deg2rad(0.0)
-#x0[0] = -0.0552
-#x0[1] = 0.3225
+#x0[0] = 
+#x0[1] = 0.2
+x0[0] = 0
+x0[1] = 0.15
 #Specifies numerical constants for inertial/mass properties
 numerical_constants = array([1.035,  # leg_length[m]
                              0.58,   # leg_com_length[m]
@@ -205,14 +205,16 @@ def zero_controller(x,t):
   if(counter == 0):
     lastidx = np.abs(angle_1 - x[0]).argmin()
     counter = counter + 1
+    idx = lastidx
+    returnval = -dot(K[lastidx],x)
     print("first round")
     print(lastidx)
   if(x[2] < 1  and x[2] > -1):
     idx = (np.abs(angle_1 - x[0])).argmin()
     if(idx > 91):
-      idx = idx - 5
+      idx = idx - 2
     if(idx < 91):
-      idx = idx + 5
+      idx = idx + 2
     lastidx = idx
     returnval = -dot(K[idx], x)
     idx_vector.append(lastidx)
@@ -221,7 +223,6 @@ def zero_controller(x,t):
     idx = lastidx
     idx_vector.append(lastidx)
     returnval = -dot(K[idx], x)
-    print(idx)
   tracking_vector.append([angle_1[idx], angle_2[idx]])
   curr_vector.append([x[0], x[1]])
   if(returnval[1] > torquelim):
@@ -238,15 +239,15 @@ def zero_controller(x,t):
     #if(returnval[0] > 100):
     #  returnval[0] = 100
     returnval[1] = 0
-  if(t > 0.4 and t < 0.55):
-    returnval[0] = 20
-    returnval[1] = returnval[1] - 10
-  if(t > 1.0 and t < 1.15):
-    returnval[0] = 10
-  if(t > 1.3 and t < 1.45):
-    returnval[0] = 10
-  if(t > 1.7 and t < 1.85):
-    returnval[0] = 10
+#  if(t > 0.4 and t < 0.55):
+#    returnval[0] = 20
+#    returnval[1] = returnval[1] - 10
+#  if(t > 1.0 and t < 1.15):
+#    returnval[0] = 10
+#  if(t > 1.3 and t < 1.45):
+#    returnval[0] = 10
+#  if(t > 1.7 and t < 1.85):
+#    returnval[0] = 10
 
   torque_vector.append(returnval)
   time_vector.append(t)
@@ -333,16 +334,19 @@ def local_controller(x,t):
   torque_vector.append(returnval)
   time_vector.append(t)
   return returnval
+def trim_controller(x,t):
+  idx = np.abs(angle_1 - x[0]).argmin()
+  return [0, torques[idx]]
 
-args['specified'] = path_controller
+args['specified'] = zero_controller
 
 y = odeint(right_hand_side, x0, t, args=(args,))
 
 x1 = numerical_constants[0]*sin(y[:,0])
 y1 = numerical_constants[0]*cos(y[:,0])
 
-x2 = x1 + numerical_constants[4]*2*sin(y[:,1])
-y2 = y1 + numerical_constants[4]*2*cos(y[:,1])
+x2 = x1 + numerical_constants[4]*2*sin(y[:,0] + y[:,1])
+y2 = y1 + numerical_constants[4]*2*cos(y[:,0] + y[:,1])
 
 dt = 0.05
 

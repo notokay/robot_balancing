@@ -12,50 +12,49 @@ from matplotlib.pyplot import plot, xlabel, ylabel, legend, rcParams
 import numpy as np
 from sympy.utilities import lambdify
 from sympy.physics.vector import init_vprinting, vlatex
-from triple_pendulum_setup import theta1, theta2, theta3, omega1, omega2, omega3, l_ankle_torque, l_hip_torque, r_hip_torque, coordinates, speeds, kane, mass_matrix, forcing_vector, specified, parameter_dict, constants, numerical_constants
+from double_block_setup import theta1, theta2,  omega1, omega2,  l_ankle_torque, l_hip_torque,  coordinates, speeds, kane, mass_matrix, forcing_vector, specified, parameter_dict, constants, numerical_constants
 from utils import det_controllable
 init_vprinting()
 import pickle
 
-inputx = open('triple_pen_angle_one_useful.pkl', 'rb')
-inputy = open('triple_pen_angle_two_useful.pkl', 'rb')
-inputz = open('triple_pen_angle_three_useful.pkl', 'rb')
+inputx = open('double_block_angle_one.pkl', 'rb')
+inputy = open('double_block_angle_two.pkl', 'rb')
 
 X = pickle.load(inputx)
 Y = pickle.load(inputy)
-Z = pickle.load(inputz)
 
 inputx.close()
 inputy.close()
-inputz.close()
 
 answer_vector = []
-
-for x, y, z in zip(X,Y,Z):
-  answer_vector.append([x,y,z])
+tor_dict = dict(zip([l_ankle_torque], [0]))
+a1 = []
+a2 = []
+for x, y in zip(X,Y):
+  answer_vector.append([x,y])
+  a1.append(x)
+  a2.append(y)
 print("answer_vector done")
-
 #Linearization
 equilibrium_points = []
+
 for element in answer_vector:
   equilibrium_points.append(concatenate((element, zeros(len(speeds))), axis=1))
 print("equilibrium_points done")
 equilibrium_dict = []
+
 for element in equilibrium_points:
   equilibrium_dict.append(dict(zip(coordinates + speeds, element)))
 print("equilibrium_dict done")
-
 #Jacobian fo forcing vector w.r.t. states and inputs
-tor_dict = dict(zip([l_ankle_torque], [0]))
 F_A = forcing_vector.jacobian(coordinates + speeds)
 F_B = forcing_vector.subs(tor_dict).jacobian(specified)
 print("jacobian done")
-
 #Substitute in values for the variables in the forcing vector
 F_A = F_A.subs(parameter_dict)
 F_B = F_B.subs(parameter_dict)
-print("subs done")
 
+print("subs done")
 forcing_a = []
 forcing_b = []
 M = []
@@ -86,17 +85,18 @@ for m,fb in zip(M,forcing_b):
   B.append(dot(inv(m), fb))
 print("fb done")
 
-outputA = open('triple_pen_linearized_A_useful.pkl', 'wb')
-outputB = open('triple_pen_linearized_B_useful.pkl','wb')
-#outputB2 = open('triple_pen_linearized_B2.pkl', 'wb')
-#outputB3 = open('triple_pen_linearized_B3.pkl', 'wb')
+outputA = open('double_block_linearized_A_full.pkl', 'wb')
+outputB = open('double_block_linearized_B_full.pkl','wb')
+outputa1 = open('double_block_angle_1_zoom.pkl','wb')
+outputa2 = open('double_block_angle_2_zoom.pkl','wb')
 
 pickle.dump(A, outputA)
 pickle.dump(B, outputB)
-#pickle.dump(B_two, outputB2)
-#pickle.dump(B_three, outputB3)
+pickle.dump(a1, outputa1)
+pickle.dump(a2, outputa2)
 
 outputA.close()
 outputB.close()
-#outputB2.close()
-#outputB3.close()
+outputa1.close()
+outputa2.close()
+

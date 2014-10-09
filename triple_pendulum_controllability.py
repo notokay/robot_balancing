@@ -17,8 +17,8 @@ from utils import det_controllable, controllable
 init_vprinting()
 import pickle
 
-inputA = open('triple_pen_linearized_A.pkl', 'rb')
-inputB = open('triple_pen_linearized_B.pkl','rb')
+inputA = open('triple_pen_linearized_A_useful.pkl', 'rb')
+inputB = open('triple_pen_linearized_B_useful.pkl','rb')
 inputB2 = open('triple_pen_linearized_B2.pkl', 'rb')
 inputB3 = open('triple_pen_linearized_B3.pkl', 'rb')
 A = pickle.load(inputA)
@@ -36,19 +36,15 @@ controllability_det_two = []
 controllability_det_three = []
 
 #calculate determinant of controllability matrix
-for a,b,b2,b3 in zip(A,B,B_two, B_three):
-  controllability_det.append(controllable(a,b))
-  controllability_det_two.append(det_controllable(a,b2))
-  controllability_det_three.append(det_controllable(a,b3))
+for a,b in zip(A,B):
+  controllability_det_two.append(det_controllable(a,b[:,1].reshape(6,1)))
+  controllability_det_three.append(det_controllable(a,b[:,2].reshape(6,1)))
 
-outputdet = open('triple_pen_controllability_bool.pkl','wb')
-outputdet2 = open('triple_pen_controllability_angle_two_lots.pkl', 'wb')
-outputdet3 = open('triple_pen_controllability_angle_three_lots.pkl','wb')
+outputdet2 = open('triple_pen_controllability_angle_two_useful.pkl', 'wb')
+outputdet3 = open('triple_pen_controllability_angle_three_useful.pkl','wb')
 
-pickle.dump(controllability_det, outputdet)
 pickle.dump(controllability_det_two, outputdet2)
 pickle.dump(controllability_det_three, outputdet3)
 
-outputdet.close()
 outputdet2.close()
 outputdet3.close()  
