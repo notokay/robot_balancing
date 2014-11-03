@@ -1,6 +1,6 @@
 from numpy import array, zeros
-from sympy import symbols, simplify, trigsimp
-from sympy.physics.mechanics import dynamicsymbols, ReferenceFrame, Point, inertia, RigidBody, KanesMethod
+from sympy import symbols, simplify, trigsimp, cos, sin
+from sympy.physics.mechanics import dynamicsymbols, ReferenceFrame, Point, inertia, RigidBody, KanesMethod, kinetic_energy, potential_energy
 
 #Sets up inertial frame as well as frames for each linkage
 inertial_frame = ReferenceFrame('I')
@@ -113,14 +113,23 @@ constants = [leg_length,
 #Specified contains the matrix for the input torques
 specified = [ankle_torque, waist_torque]
 
+##Set up energies
+
+
+ke_leg = kinetic_energy(inertial_frame, leg)
+leg.set_potential_energy(leg_mass*g*leg_length*cos(theta1))
+
+ke_body = kinetic_energy(inertial_frame, body)
+body.set_potential_energy(body_mass*g*body_com_length*cos(theta1+theta2) + leg_length*cos(theta1))
+
 #Specifies numerical constants for inertial/mass properties
-numerical_constants = array([1.035,  # leg_length[m]
-                             0.58,   # leg_com_length[m]
-                             23.779, # leg_mass[kg]
-                             0.383,  # leg_inertia [kg*m^2]
-                             0.305,  # body_com_length [m]
-                             32.44,  # body_mass[kg]
-                             1.485,  # body_inertia [kg*m^2]
+numerical_constants = array([1.0,  # leg_length[m]
+                             1.0,   # leg_com_length[m]
+                             1.0, # leg_mass[kg]
+                             1.0,  # leg_inertia [kg*m^2]
+                             1.0,  # body_com_length [m]
+                             1.0,  # body_mass[kg]
+                             1.0,  # body_inertia [kg*m^2]
                              9.81],    # acceleration due to gravity [m/s^2]
                              )
 #Set input torques to 0

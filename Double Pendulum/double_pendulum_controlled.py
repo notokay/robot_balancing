@@ -11,7 +11,7 @@ from scipy.integrate import odeint
 from scipy.linalg import solve_continuous_are
 from pydy.codegen.code import generate_ode_function
 import matplotlib.animation as animation
-from double_pendulum_setup import theta1, theta2, ankle, leg_length, waist, omega1, omega2, ankle_torque, waist_torque, coordinates, speeds, kane, mass_matrix, forcing_vector, specified, parameter_dict, constants
+from double_pendulum_setup import theta1, theta2, ankle, leg_length, waist, omega1, omega2, ankle_torque, waist_torque, coordinates, speeds, kane, mass_matrix, forcing_vector, specified, parameter_dict, constants, numerical_constants
 #from utils import controllable
 
 init_vprinting()
@@ -24,8 +24,8 @@ right_hand_side = generate_ode_function(mass_matrix, forcing_vector,
 
 #Initial Conditions for speeds and positions
 x0 = zeros(4)
-x0[:2] = deg2rad(40.0)
-x0[1] = deg2rad(120)
+x0[:2] = deg2rad(0.0)
+x0[1] = deg2rad(0.0)
 
 #Set input torques to 0
 numerical_specified = zeros(2)
@@ -70,7 +70,13 @@ B = dot(inv(M), F_B)
 #assert controllable(A,B)
 
 Q = eye(4)
+Q[0][0] = ((1.0/20.0)**2)
+Q[1][1] = ((1.0/20.0)**2)
+Q[2][2] = ((1.0/20.0)**2)
+Q[3][3] = ((1.0/20.0)**2)
 R = eye(2)
+R[0][0] = (1.0/.0000001)**2
+R[1][1] = (1.0/1.0)**2
 
 S = solve_continuous_are(A, B, Q, R)
 K = dot(dot(inv(R), B.T), S)
@@ -79,9 +85,17 @@ torque_vector = []
 time_vector = []
 
 def controller(x,t):
-  torque_vector.append([500*sin(t), -500*sin(t)])
   time_vector.append(t)
-  return [500*sin(t),-500*sin(t) ]
+  return_val = -dot(K,x)
+  return_val[0] = 0
+  if(t < 2.0 and t > 0.2):
+    return_val[0] = 3
+  if(return_val[1] > 30):
+    return_val[1] = 30
+  if(return_val[1] < -30):
+    return_val[1] = -30
+  torque_vector.append(return_val)
+  return return_val
 
 args['specified'] = controller
 
@@ -90,8 +104,8 @@ y = odeint(right_hand_side, x0, t, args=(args,))
 x1 = numerical_constants[0]*sin(y[:,0])
 y1 = numerical_constants[0]*cos(y[:,0])
 
-x2 = x1 + numerical_constants[4]*2*sin(y[:,1])
-y2 = y1 + numerical_constants[4]*2*cos(y[:,1])
+x2 = x1 + numerical_constants[4]*2*sin(y[:,0] + y[:,1])
+y2 = y1 + numerical_constants[4]*2*cos(y[:,0] + y[:,1])
 
 dt = 0.05
 
@@ -117,7 +131,7 @@ def animate(i):
   return line, time_text
 
 ani = animation.FuncAnimation(fig, animate, np.arange(1, len(y)), interval=25, blit=True, init_func=init)
-ani.save('double_pendulum_controlled_spinny.mp4')
+#ani.save('double_pendulum_controlled_spinny.mp4')
 plt.show()
 
 plot(t, rad2deg(y[:,:2]))
@@ -128,7 +142,8 @@ plt.show()
 
 plot(time_vector, torque_vector)
 xlabel('Time [s]')
-ylabel('Angle 1 torque')
+ylabel('Torque')
+legend(["${}$".format(vlatex(q)) for q in specified])
 plt.show()
 
 plot(t, rad2deg(y[:, 2:]))

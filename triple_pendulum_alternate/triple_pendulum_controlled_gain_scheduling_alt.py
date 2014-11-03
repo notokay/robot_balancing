@@ -11,6 +11,7 @@ from matplotlib.pyplot import plot, xlabel, ylabel, legend, rcParams
 import numpy as np
 from triple_pendulum_setup_alt import theta1, theta2, theta3, omega1, omega2, omega3, l_ankle_torque, l_hip_torque, r_hip_torque, coordinates, speeds, kane, mass_matrix, forcing_vector, specified, parameter_dict, constants, numerical_constants
 from sympy.physics.vector import init_vprinting, vlatex
+from math import fabs
 init_vprinting()
 import pickle
 
@@ -23,7 +24,7 @@ right_hand_side = generate_ode_function(mass_matrix, forcing_vector,
 # Specify Numerical Quantities
 # ============================
 
-initial_coordinates = array([0.1,0.4,0.6])
+initial_coordinates = array([0.2,0.4,0.2])
 #initial_speeds = deg2rad(-5.0) * ones(len(speeds))
 initial_speeds = zeros(len(speeds))
 
@@ -305,6 +306,69 @@ def zero_stay_controller(x,t):
   time_vector.append(t)
   return returnval
 
+def limits_controller(x,t):
+  global lastidx
+  global counter
+  torquelim = 180
+  if(counter ==0):
+    lastidx = np.abs(angle_1-x[0]).argmin()
+    lastidx = lastidx + np.abs(angle_2[lastidx:lastidx +30] - x[1]).argmin()
+    counter = counter + 1
+    idx = lastidx
+    print('first round')
+    print(lastidx)
+  if(x[3] < 1.0 and x[3] > -1.0):
+    idx = np.abs(angle_1 - x[0]).argmin()
+    idx = idx + np.abs(angle_2[idx:idx+30] - x[1]).argmin()
+    lastidx = idx
+    idx_vector.append(idx)
+    print('adapt')
+    print(idx)
+  else:
+    if(x[5] > 1.0 or x[5] < -1.0):
+      idx = lastidx
+      print(idx)
+      idx_vector.append(lastidx)
+    else:
+      idx = np.abs(angle_1 - x[0]).argmin()
+      idx = idx + np.abs(angle_3[idx:idx+30] - x[2]).argmin()
+      lastidx = idx
+      print(idx)
+      idx_vector.append(lastidx)
+  returnval = -dot(K[idx],x)
+  tracking_vector.append([angle_1[idx], angle_2[idx], angle_3[idx]])
+  curr_vector.append([x[0], x[1], x[2]])
+  if(returnval[1] > torquelim): 
+    returnval[1] = torquelim
+  if(returnval[1] < -1*torquelim):
+    returnval[1] = -1*torquelim
+  if(returnval[2] > torquelim):
+    returnval[2] = torquelim
+  if(returnval[2] < -1*torquelim):
+    returnval[2] = -1*torquelim
+ # returnval[0] = 0
+  if(x[0] < -0.48):
+    returnval[1] = 0
+    returnval[2] = 0
+    returnval[0] = 0
+  if(x[0] > 0.48):
+    returnval[1] = 0
+    returnval[2] = 0
+    returnval[0] = 0
+  if(x[1] > 0.526):
+    print(returnval[1])
+    returnval[1] = -300*(x[1]-0.526)
+  if(x[1] < -0.437):
+    print(returnval[1])
+    returnval[1] = -300*(x[1]-0.437)
+  if(x[2] > 0.513):
+    returnval[2] = -300*(x[2]-0.513)
+  if(x[2] < -0.527):
+    returnval[2] = -300*(x[2]-0.427)
+  torque_vector.append(returnval)
+  time_vector.append(t)
+  return returnval
+
 def local_controller(x, t):
   torquelim = 20
   returnval = -dot(gainK,x)
@@ -330,7 +394,7 @@ def trim_controller(x,t):
   time_vector.append(t)
   return returnval
 
-args['specified'] = stay_zero_controller
+args['specified'] = limits_controller
 
 y = odeint(right_hand_side, x0, t, args=(args,))
 
@@ -376,7 +440,7 @@ def animate(i):
   return line, time_text
 
 ani = animation.FuncAnimation(fig, animate, np.arange(1, len(y)), interval=25, blit=True, init_func=init)
-ani.save('triple_pendulum_alt_stay_zero_controller.mp4')
+#ani.save('triple_pendulum_alt_with_limits.mp4')
 plt.show()
 
 plot(t, rad2deg(y[:,:3]))

@@ -17,69 +17,21 @@ from matplotlib.pyplot import plot, xlabel, ylabel, legend, rcParams
 import matplotlib.animation as animation
 from utils import det_controllable
 from double_pendulum_setup import theta1, theta2, ankle, leg_length, waist, omega1, omega2, ankle_torque, waist_torque, coordinates, speeds, kane, mass_matrix, forcing_vector, specified, parameter_dict, constants
-
 import pickle
-#from utils import controllable
 
 init_vprinting()
 
-inputx = open('double_pen_angle_1.pkl', 'rb')
-inputy = open('double_pen_angle_2.pkl', 'rb')
+inputA = open('double_pen_linearized_A.pkl', 'rb')
+inputB = open('double_pen_linearized_B.pkl', 'rb')
 
-X = pickle.load(inputx)
-Y = pickle.load(inputy)
+A = pickle.load(inputA)
+B = pickle.load(inputB)
 
-inputx.close()
-inputy.close()
-
-answer_vector = []
-
-for x, y in zip(X,Y):
-  answer_vector.append([x,y])
-
-#Linearization
-equilibrium_points = []
-for element in answer_vector:
-  equilibrium_points.append(concatenate((element, zeros(len(speeds))), axis=1)) 
-
-equilibrium_dict = []
-
-for element in equilibrium_points:
-  equilibrium_dict.append(dict(zip(coordinates + speeds, element)))
-
-#Jacobian of forcing vector w.r.t. states and inputs
-F_A = forcing_vector.jacobian(coordinates + speeds)
-F_B = forcing_vector.jacobian(specified)
-
-#substitute in values fo rth evariables int he forcing vector
-F_A = simplify(F_A.subs(parameter_dict))
-F_B = simplify(F_B.subs(parameter_dict))
-
-forcing_a = []
-forcing_b = []
-M = []
-for element in equilibrium_dict:
-  forcing_a.append(F_A.subs(element))
-  forcing_b.append(F_B.subs(element)[:,1])
-  M.append(mass_matrix.subs(element))
-
-for i in range(len(M)):
-  M[i] = M[i].subs(parameter_dict)
-  M[i] = array(M[i].tolist(), dtype = float)
-  forcing_b[i] = array(forcing_b[i].tolist(), dtype = float)
-  forcing_a[i] = array(forcing_a[i].tolist(), dtype = float)
+inputA.close()
+inputB.close()
 
 #state A and input B values for linearized function
-
-A = []
-B = []
 controllability_det = []
-
-for m, fa in zip(M, forcing_a):
-  A.append(dot(inv(m),fa) )
-
-for m, fb in zip(M, forcing_b):
-  B.append(dot(inv(m), fb))
 
 for a,b in zip(A,B):
   controllability_det.append(det_controllable(a, b))

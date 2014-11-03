@@ -35,7 +35,7 @@ lam_r = lambdify((theta1, theta2, theta3), forcing_solved[r_hip_torque])
 
 lam_f = lambdify((theta1, theta2, theta3), forcing_matrix[0])
 
-x = -0.2
+x = -0.5
 y = -3.15
 z = -3.15
 X = []

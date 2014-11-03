@@ -12,7 +12,7 @@ from scipy.linalg import solve_continuous_are
 from pydy.codegen.code import generate_ode_function
 import pickle
 import matplotlib.animation as animation
-from double_pendulum_setup import theta1, theta2, ankle, leg_length, waist, omega1, omega2, ankle_torque, waist_torque, coordinates, speeds, kane, mass_matrix, forcing_vector, specified, parameter_dict, constants
+from double_pendulum_setup import theta1, theta2, ankle, leg_length, waist, omega1, omega2, ankle_torque, waist_torque, coordinates, speeds, kane, mass_matrix, forcing_vector, specified, parameter_dict, constants, ke_leg, ke_body,leg, body, numerical_constants, numerical_specified
 
 #from utils import controllable
 
@@ -27,20 +27,8 @@ right_hand_side = generate_ode_function(mass_matrix, forcing_vector,
 x0 = zeros(4)
 #x0[0] = 
 #x0[1] = 0.2
-x0[0] = 0.0
+x0[0] = 1.57
 x0[1] = 0.0
-#Specifies numerical constants for inertial/mass properties
-numerical_constants = array([1.035,  # leg_length[m]
-                             0.58,   # leg_com_length[m]
-                             23.779, # leg_mass[kg]
-                             0.383,  # leg_inertia [kg*m^2]
-                             0.305,  # body_com_length [m]
-                             32.44,  # body_mass[kg]
-                             1.485,  # body_inertia [kg*m^2]
-                             9.81],    # acceleration due to gravity [m/s^2]
-                             )
-#Set input torques to 0
-numerical_specified = [0,0]
 
 args = {'constants': numerical_constants,
         'specified': numerical_specified}
@@ -328,15 +316,35 @@ def trim_controller(x,t):
   idx = np.abs(angle_1 - x[0]).argmin()
   return [0, torques[idx]]
 
-args['specified'] = test_controller
+#args['specified'] = test_controller
 
 y = odeint(right_hand_side, x0, t, args=(args,))
 
 x1 = numerical_constants[0]*sin(y[:,0])
 y1 = numerical_constants[0]*cos(y[:,0])
 
-x2 = x1 + numerical_constants[4]*2*sin(y[:,0] + y[:,1])
-y2 = y1 + numerical_constants[4]*2*cos(y[:,0] + y[:,1])
+x2 = x1 + numerical_constants[4]*sin(y[:,0] + y[:,1])
+y2 = y1 + numerical_constants[4]*cos(y[:,0] + y[:,1])
+
+p_energy_vector = []
+k_energy_vector = []
+tot_ke = []
+tot_pe = []
+
+for i in y[:,:2]:
+  coord_dict = dict(zip(coordinates, i))
+  p_energy = (leg.potential_energy.subs(coord_dict).subs(parameter_dict), body.potential_energy.subs(coord_dict).subs(parameter_dict))
+  p_energy_vector.append(p_energy)
+  tot_pe.append(p_energy[0] + p_energy[1])
+
+for p,s in zip(y[:,:2], y[:,2:]):
+  speeds_dict = dict(zip(speeds,s))
+  coords_dict = dict(zip(coordinates, p))
+  tot_ke.append(ke_body.subs(speeds_dict).subs(coords_dict).subs(parameter_dict))
+
+tot_e = []
+for i, j in zip(tot_ke, tot_pe):
+  tot_e.append(i+j)
 
 dt = 0.05
 
@@ -365,12 +373,23 @@ ani = animation.FuncAnimation(fig, animate, np.arange(1, len(y)), interval=25, b
 ani.save('acrobot_zeroc_0_0_disturbance_initial_K.mp4')
 plt.show()
 
-plot(t, rad2deg(y[:,:2]))
-xlabel('Time [s]')
-ylabel('Angle[deg]')
-legend(["${}$".format(vlatex(c)) for c in coordinates])
-plt.show()
+f, (ax1, ax2, ax3) = plt.subplots(3)
 
+ke1, ke2 = dynamicsymbols('ke1, ke2')
+pe1, pe2 = dynamicsymbols('pe1, pe2')
+ke, pe,tot = dynamicsymbols('ke, pe, tot')
+
+energies = [pe1,pe2,ke1,ke2]
+energy = [pe, ke, tot]
+
+
+
+
+ax1.plot(t, rad2deg(y[:,:2]))
+ax1.set_xlabel('Time [s]')
+ax1.set_ylabel('Angle[deg]')
+ax1.legend(["${}$".format(vlatex(c)) for c in coordinates])
+"""
 plot(time_vector, tracking_vector)
 #plot(time_vector, curr_vector)
 xlabel('Time')
@@ -381,14 +400,22 @@ plot(time_vector, torque_vector)
 xlabel('Time [s]')
 ylabel('Angle 1 torque')
 plt.show()
+"""
+ax2.plot(t, rad2deg(y[:, 2:]))
+ax2.set_xlabel('Time [s]')
+ax2.set_ylabel('Angular Rate [deg/s]')
+ax2.legend(["${}$".format(vlatex(s)) for s in speeds])
 
-plot(t, rad2deg(y[:, 2:]))
-xlabel('Time [s]')
-ylabel('Angular Rate [deg/s]')
-legend(["${}$".format(vlatex(s)) for s in speeds])
+ax3.plot(t, tot_pe)
+ax3.plot(t, tot_ke)
+ax3.plot(t, tot_e)
+ax3.set_xlabel('Time [s]')
+ax3.set_ylabel('Energy')
+ax3.legend(["${}$".format(vlatex(e)) for e in energy])
 plt.show()
-
+"""
 plot(time_vector, idx_vector)
 xlabel('t')
 ylabel('idx')
 plt.show()
+"""
