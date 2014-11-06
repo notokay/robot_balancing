@@ -25,7 +25,7 @@ right_hand_side = generate_ode_function(mass_matrix, forcing_vector,
 # Specify Numerical Quantities
 # ============================
 
-initial_coordinates = array([0.0,0.0,0.0,0.1])
+initial_coordinates = array([0.1, 0.1, 0.0, 0.])
 #initial_speeds = deg2rad(-5.0) * ones(len(speeds))
 initial_speeds = zeros(len(speeds))
 
@@ -46,12 +46,14 @@ t = linspace(0.0, final_time, final_time * frames_per_sec)
 # =======
 
 inputK = open('bm_LQR_K_useful.pkl','rb')
+inputG = open('bm_gain_coefs.pkl', 'rb')
 inputa1 = open('bm_angle_one_useful_1.pkl','rb')
 inputa2 = open('bm_angle_two_useful_1.pkl','rb')
 inputa3 = open('bm_angle_three_useful_1.pkl','rb')
 inputa4 = open('bm_angle_four_useful_1.pkl','rb')
 
 K = pickle.load(inputK)
+gain_coefs = pickle.load(inputG)
 a1 = pickle.load(inputa1)
 a1 = np.asarray(a1, dtype = float)
 a2 = pickle.load(inputa2)
@@ -62,11 +64,28 @@ a4 = pickle.load(inputa4)
 a4 = np.asarray(a4, dtype = float)
 
 inputK.close()
+inputG.close()
 inputa1.close()
 inputa2.close()
 inputa3.close()
 inputa4.close()
 
+c, gt1, gt1sq, gt2, gt2sq, gt3, gt3sq, gt4, gt4sq, go1, go1sq, go2, go2sq, go3, go3sq, go4, go4sq, t1, t2, t3, t4, o1, o2, o3, o4 = dynamicsymbols('c, gt1, gt1sq, gt2, gt2sq, gt3, gt3sq, gt4, gt4sq, go1, go1sq, go2, go2sq, go3, go3sq, go4, go4sq, t1, t2, t3, t4, o1, o2, o3, o4')
+
+
+
+A = c + gt1*t1 + gt1sq*t1**2 + gt2*t2 + gt2sq*t2**2 + gt3*t3 + gt3sq*t3**2 + gt4*t4 + gt4sq*t4**2 + go1*o1 + go1sq*o1**2 + go2*o2 + go2sq*o2**2 + go3*o3 + go3sq*o3**2 + go4*o4 + go4sq*o4**2
+
+gain_funcs = [0,0,0,0,0,0,0,0]
+
+for element in gain_coefs:
+  for coefs in element:
+    d = dict(zip([c, gt1, gt1sq, gt2, gt2sq, gt3, gt3sq, gt4, gt4sq, go1, go1sq, go2, go2sq, go3, go3sq, go4, go4sq], coefs))
+    func = A.subs(d)
+    gain_funcs.append(lambdify((t1, t2, t3, t4, o1, o2, o3, o4), func))
+
+K_func_gains = [[0.,0.,0.,0.,0.,0.,0.,0.],[1.,1.,1.,1.,1.,1.,1.,1.],[1.,1.,1.,1.,1.,1.,1.,1.],[1.,1.,1.,1.,1.,1.,1.,1.]]
+K_func_gains = asarray(K_func_gains)
 torque_vector = []
 lastk = []
 idx_vector = []
@@ -79,7 +98,7 @@ limits_vector = []
 passivity_vector = []
 p_energy_vector = []
 k_energy_vector = []
-max_legs_pe = 0.8*20*9.8 + (0.8+0.05)*20*9.8 + 20*1.6*9.8
+max_legs_pe = 0.8*20*9.8 + (0.8+0.05)*20*9.8 + 20*0.8*9.8
 max_body_pe = 50*(0.8+0.15+0.5)*9.8
 lpe = l_leg.potential_energy.subs(parameter_dict)
 cpe = crotch.potential_energy.subs(parameter_dict)
@@ -96,6 +115,7 @@ rhip_vel = []
 ang_vec = []
 int_lhip_vel = []
 int_rhip_vel = []
+lastreturnval = []
 
 temptorvec = []
 com_vec = []
@@ -702,7 +722,7 @@ def energy_controller_integrator_2(x,t):
   time_vector.append(t)
   int_com_error = scipy.integrate.trapz(com_vec, time_vector)
   int_com_vec.append(int_com_error)
-  """
+  
   lhip_vel_error = scipy.integrate.trapz(lhip_vel, time_vector)
   rhip_vel_error = scipy.integrate.trapz(rhip_vel, time_vector)
   int_lhip_vel.append(lhip_vel_error)
@@ -710,7 +730,7 @@ def energy_controller_integrator_2(x,t):
 
   returnval[1] = returnval[1] - 20*lhip_vel_error
   returnval[2] = returnval[2] - 20*rhip_vel_error
-  """
+  
   returnval[3] = returnval[3] + 500*int_com_error
   returnval[0] = returnval[0] + 100*int_com_error
   if(returnval[0] > ankle_torquelim):
@@ -729,8 +749,166 @@ def energy_controller_integrator_2(x,t):
   torque_vector.append(returnval)
   x_vec.append(x)
   return returnval
+def continuous_energy_controller_integrator(x,t):
+  global counter
+  global lastlegtor
+  global lastreturnval
 
-args['specified'] = energy_controller_integrator
+  torquelim = 180
+  ankle_torquelim = 90
+  limit_torque = 8*torquelim
+  time_vector.append(t)
+  x_vec.append(x)
+  vel_vec.append([x[4], x[5], x[6], x[7]])
+  ang_vec.append([x[0], x[1], x[2], x[3]])
+  lhip_vel.append(x[5])
+  rhip_vel.append(x[6])
+  com = calc_com(x[0], x[1], x[2], x[3])
+  com_vec.append(com)
+  int_com_error = scipy.integrate.trapz(com_vec, time_vector)
+  int_com_vec.append(int_com_error)  
+  lhip_vel_error = scipy.integrate.trapz(lhip_vel, time_vector)
+  int_lhip_vel.append(lhip_vel_error)
+
+  if(counter == 0):
+    for i in np.arange(len(K_func_gains)):
+      for j in np.arange(len(K_func_gains[i])):
+        if(K_func_gains[i][j] != 0.0):
+          K_func_gains[i][j] = gain_funcs[i*8+j](x[0], x[1], x[2], x[3], x[4], x[5], x[6], x[7])
+    counter = counter + 1
+    lastreturnval = K_func_gains
+
+  if(x[4] < 0.1 and x[4] > -0.1):
+    if(counter %400==0):
+      for i in np.arange(len(K_func_gains)):
+        for j in np.arange(len(K_func_gains[i])):
+          if(K_func_gains[i][j] != 0.0):
+            K_func_gains[i][j] = gain_funcs[i*8+j](x[0], x[1], x[2], x[3], x[4], x[5], x[6], x[7])
+      print("stay zero adapt")
+      idx_vector.append(3)
+    else:
+      print("stay zero")
+      idx_vector.append(0)
+  elif(x[4] < 1.0 and x[4] > -1.0):
+    if(counter %200==0):
+      for i in np.arange(len(K_func_gains)):
+        for j in np.arange(len(K_func_gains[i])):
+          if(K_func_gains[i][j] != 0.0):
+            K_func_gains[i][j] = gain_funcs[i*8+j](x[0], x[1], x[2], x[3], x[4], x[5], x[6], x[7])
+      idx_vector.append(5)
+      print("adapt")
+    else:
+      x = x_vec[len(x_vec) - 2]
+      idx_vector.append(2)
+      print('stay')
+  else:
+    idx_vector.append(20)
+    print("hispeed")
+  prop = com/(com + 1/(com+0.00000000000001))
+
+  for i in np.arange(len(K_func_gains)):
+    for j in np.arange(len(K_func_gains[i])):
+      K_func_gains[i][j] = (K_func_gains[i][j] + 100*lastreturnval[i][j])/101
+  if(counter %323 == 0):
+    lastreturnval = K_func_gains
+  returnval = -dot(K_func_gains, x)
+  
+  coord_dict = dict(zip(coordinates, (x[0], x[1], x[2], x[3])))
+
+  tlp = legs_tpe_f(x[0], x[1], x[2], x[3])
+  tbp = bpe_f(x[0], x[1], x[2], x[3])
+  p_energy_vector.append(tlp)
+  ke_legs = max_legs_pe - tlp
+  ke_body = max_body_pe - tbp
+  k_energy_vector.append(ke_legs)
+  allowtor = ( ke_legs/(2*fabs(x[5])+0.000001), ke_legs/(2*fabs(x[6])+0.000001), ke_body/(fabs(x[7])+0.000001))
+  allowed_tor.append(allowtor)
+  com = calc_com(x[0], x[1], x[2], x[3])
+  returnval[0] = 800*com
+
+  if(x[0] < -1.0):
+    returnval[1] = 0
+    returnval[2] = 0
+    returnval[0] = 0
+    returnval[3] = 0
+  if(x[0] > 1.0):
+    returnval[1] = 0
+    returnval[2] = 0
+    returnval[0] = 0
+    returnval[3] = 0
+
+  
+
+  if(x[1] >  0.516):
+    returnval[1] = returnval[1] + -1*limit_torque*(x[1]-0.516)
+  if(x[1] < -0.516):
+    returnval[1] = returnval[1] + -1*limit_torque*(x[1]-0.516)
+  if(x[2] > 0.516):
+    returnval[2] = returnval[2] + -1*limit_torque*(x[2]-0.516)
+  if(x[2] < -0.516):
+    returnval[2] = returnval[2] + -1*limit_torque*(x[2]-0.516)
+  if(x[3] > 0.6):
+    returnval[3] = returnval[3] + -1*limit_torque*(x[3]-0.6)
+  if(x[3] < -1*0.6):
+    returnval[3] = returnval[3] + -1*limit_torque*(x[3] - 0.6)
+
+  if(returnval[0] > ankle_torquelim):
+    returnval[0] = ankle_torquelim
+  if(returnval[0] < -1*ankle_torquelim):
+    returnval[0] = -1*ankle_torquelim
+  if(returnval[1] > torquelim): 
+    returnval[1] = torquelim
+  if(returnval[1] < -1*torquelim):
+    returnval[1] = -1*torquelim
+  if(returnval[2] > torquelim):
+    returnval[2] = torquelim
+  if(returnval[2] < -1*torquelim):
+    returnval[2] = -1*torquelim
+  if(returnval[3] < -1*torquelim):
+    returnval[3] = -1*torquelim
+  if(returnval[3] > torquelim):
+    returnval[3] = torquelim
+  
+  if(returnval[1] > allowtor[0]):
+    returnval[1] = allowtor[0]
+  if(returnval[1] < -1*allowtor[0]):
+    returnval[1] = -1*allowtor[0]
+  if(returnval[2] > allowtor[1]):
+    returnval[2] = allowtor[1]
+  if(returnval[2] < -1*allowtor[1]):
+    returnval[2] = -1*allowtor[1]
+  if(returnval[3] > allowtor[2]):
+    returnval[3] = allowtor[2]
+  if(returnval[3] < -1*allowtor[2]):
+    returnval[3] = -1*allowtor[2]
+  
+  returnval[1] = returnval[1] + -100*x[5] - 100*lhip_vel_error - returnval[2]/4# + 100*com + 10*int_com_error
+  returnval[2] = returnval[2] + -100*x[6] - 100*int_com_error
+  returnval[3] = returnval[3] + 100*com- 75*x[7] + 200*int_com_error
+  returnval[0] = returnval[0] + 100*int_com_error
+
+  if(returnval[0] > ankle_torquelim):
+    returnval[0] = ankle_torquelim
+  if(returnval[0] < -1*ankle_torquelim):
+    returnval[0] = -1*ankle_torquelim
+  if(returnval[1] > torquelim): 
+    returnval[1] = torquelim
+  if(returnval[1] < -1*torquelim):
+    returnval[1] = -1*torquelim
+  if(returnval[2] > torquelim):
+    returnval[2] = torquelim
+  if(returnval[2] < -1*torquelim):
+    returnval[2] = -1*torquelim
+  if(returnval[3] < -1*torquelim):
+    returnval[3] = -1*torquelim
+  if(returnval[3] > torquelim):
+    returnval[3] = torquelim
+
+  counter = counter + 1
+  torque_vector.append(returnval)
+  return returnval
+
+args['specified'] = continuous_energy_controller_integrator
 
 y = odeint(right_hand_side, x0, t, args=(args,))
 

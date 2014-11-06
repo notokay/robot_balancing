@@ -14,8 +14,8 @@ from matplotlib.pyplot import plot, xlabel, ylabel, legend, rcParams
 import matplotlib.animation as animation
 import pickle
 
-inputA = open('bm_linearized_A_useful_1.pkl','rb')
-inputB = open('bm_linearized_B_useful_1.pkl','rb')
+inputA = open('bm_linearized_A_useful.pkl','rb')
+inputB = open('bm_linearized_B_useful.pkl','rb')
 
 A = pickle.load(inputA)
 B = pickle.load(inputB)

@@ -17,10 +17,10 @@ from mpl_toolkits.mplot3d import Axes3D
 # =======
 
 inputK = open('bm_LQR_K_useful.pkl','rb')
-inputa1 = open('bm_angle_one_useful_1.pkl','rb')
-inputa2 = open('bm_angle_two_useful_1.pkl','rb')
-inputa3 = open('bm_angle_three_useful_1.pkl','rb')
-inputa4 = open('bm_angle_four_useful_1.pkl','rb')
+inputa1 = open('bm_angle_one_useful.pkl','rb')
+inputa2 = open('bm_angle_two_useful.pkl','rb')
+inputa3 = open('bm_angle_three_useful.pkl','rb')
+inputa4 = open('bm_angle_four_useful.pkl','rb')
 
 K = pickle.load(inputK)
 a1 = pickle.load(inputa1)
@@ -140,7 +140,7 @@ t4o4_eq = np.linalg.lstsq(A, theta4_omega4)[0]
 
 gain_coefs = array([[t2t1_eq, t2t2_eq, t2t3_eq, t2t4_eq, t2o1_eq, t2o2_eq, t2o3_eq, t2o4_eq], [t3t1_eq, t3t2_eq, t3t3_eq, t3t4_eq, t3o1_eq, t3o2_eq, t3o3_eq, t3o4_eq], [t4t1_eq, t4t2_eq, t4t3_eq, t4t4_eq, t4o1_eq, t4o2_eq, t4o3_eq, t4o4_eq]])
 
-outputG = open('body_model_gain_coefs.pkl', 'wb')
+outputG = open('bm_gain_coefs.pkl', 'wb')
 pickle.dump(gain_coefs, outputG)
 
 outputG.close()

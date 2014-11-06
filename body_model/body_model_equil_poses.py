@@ -74,7 +74,7 @@ angle_3 = []
 angle_4 = []
 """
 for i in range(len(a1)):
-  if(a2[i] > -0.1  and a2[i] < 0.51):
+  if(a2[i] > -0.51  and a2[i] < 0.51):
     angle_1.append(a1[i])
     angle_2.append(a2[i])
     angle_3.append(a3[i])
@@ -91,7 +91,7 @@ angle_3 = []
 angle_4 = []
 
 for i in range(len(a1)):
-  if(a3[i] > -0.1 and a3[i] < 0.51):
+  if(a3[i] > -0.51 and a3[i] < 0.51):
     angle_1.append(a1[i])
     angle_2.append(a2[i])
     angle_3.append(a3[i])
@@ -149,10 +149,10 @@ ax.set_ylabel('theta_2')
 ax.set_zlabel('theta_3')
 plt.show()
 
-outputa1 = open('bm_angle_one_useful_1.pkl', 'wb')
-outputa2 = open('bm_angle_two_useful_1.pkl','wb')
-outputa3 = open('bm_angle_three_useful_1.pkl','wb')
-outputa4 = open('bm_angle_four_useful_1.pkl', 'wb')
+outputa1 = open('bm_angle_one_useful.pkl', 'wb')
+outputa2 = open('bm_angle_two_useful.pkl','wb')
+outputa3 = open('bm_angle_three_useful.pkl','wb')
+outputa4 = open('bm_angle_four_useful.pkl', 'wb')
 
 pickle.dump(a1, outputa1)
 pickle.dump(a2, outputa2)
