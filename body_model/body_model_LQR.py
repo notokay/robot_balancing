@@ -14,8 +14,8 @@ from matplotlib.pyplot import plot, xlabel, ylabel, legend, rcParams
 import matplotlib.animation as animation
 import pickle
 
-inputA = open('bm_linearized_A_useful.pkl','rb')
-inputB = open('bm_linearized_B_useful.pkl','rb')
+inputA = open('bm_linearized_A_useful_1.pkl','rb')
+inputB = open('bm_linearized_B_useful_1.pkl','rb')
 
 A = pickle.load(inputA)
 B = pickle.load(inputB)
@@ -28,15 +28,15 @@ Q[0][0] = ((1.0/1.0)**2)
 Q[1][1] = ((1.0/1.0)**2)
 Q[2][2] = ((1.0/1.0)**2)
 Q[3][3] = ((1.0/1.0)**2)
-Q[4][4] = ((1.0/0.00001)**2)
-Q[5][5] = ((1.0/0.00001)**2)
-Q[6][6] = ((1.0/0.00001)**2)
-Q[7][7] = ((1.0/0.00001)**2)
+Q[4][4] = ((1.0/0.1)**2)
+Q[5][5] = ((1.0/0.1)**2)
+Q[6][6] = ((1.0/0.1)**2)
+Q[7][7] = ((1.0/0.1)**2)
 R = eye(4)
-R[0][0] = ((1.0/0.000000000001)**2)
-R[1][1] = ((1.0/10.0)**2)
-R[2][2] = ((1.0/10.0)**2)
-R[3][3] = ((1.0/10.0)**2)
+R[0][0] = ((1.0/1.0)**2)
+R[1][1] = ((1.0/1.0)**2)
+R[2][2] = ((1.0/1.0)**2)
+R[3][3] = ((1.0/1.0)**2)
 
 K = []
 

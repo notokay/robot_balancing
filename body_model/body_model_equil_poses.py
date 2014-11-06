@@ -55,9 +55,26 @@ hip_width = numerical_constants[4]
 right_leg = numerical_constants[0]
 body_height = numerical_constants[8]
 body_com_height = numerical_constants[9]
-
+"""
 for i in range(len(a1)):
-  if(i%5 ==0):
+  if(i%5==0):
+    angle_1.append(a1[i])
+    angle_2.append(a2[i])
+    angle_3.append(a3[i])
+    angle_4.append(a4[i])
+
+a1 = angle_1
+a2 = angle_2
+a3 = angle_3
+a4 = angle_4
+
+angle_1 =[]
+angle_2 = []
+angle_3 = []
+angle_4 = []
+"""
+for i in range(len(a1)):
+  if(a2[i] > -0.1  and a2[i] < 0.51):
     angle_1.append(a1[i])
     angle_2.append(a2[i])
     angle_3.append(a3[i])
@@ -74,24 +91,7 @@ angle_3 = []
 angle_4 = []
 
 for i in range(len(a1)):
-  if(a2[i] > -0.79  and a2[i] < 0.79):
-    angle_1.append(a1[i])
-    angle_2.append(a2[i])
-    angle_3.append(a3[i])
-    angle_4.append(a4[i])
-
-a1 = angle_1
-a2 = angle_2
-a3 = angle_3
-a4 = angle_4
-
-angle_1 =[]
-angle_2 = []
-angle_3 = []
-angle_4 = []
-
-for i in range(len(a1)):
-  if(a3[i] > -0.79 and a3[i] < 0.79):
+  if(a3[i] > -0.1 and a3[i] < 0.51):
     angle_1.append(a1[i])
     angle_2.append(a2[i])
     angle_3.append(a3[i])
@@ -106,7 +106,7 @@ angle_2 = []
 angle_3 = []
 angle_4 = []
 for i in range(len(a1)):
-  if(a4[i] > - 0.79 and a4[i] < 0.79):
+  if(a4[i] > - 0.6 and a4[i] < 0.6):
       angle_1.append(a1[i])
       angle_2.append(a2[i])
       angle_3.append(a3[i])
@@ -149,10 +149,10 @@ ax.set_ylabel('theta_2')
 ax.set_zlabel('theta_3')
 plt.show()
 
-outputa1 = open('bm_angle_one_useful.pkl', 'wb')
-outputa2 = open('bm_angle_two_useful.pkl','wb')
-outputa3 = open('bm_angle_three_useful.pkl','wb')
-outputa4 = open('bm_angle_four_useful.pkl', 'wb')
+outputa1 = open('bm_angle_one_useful_1.pkl', 'wb')
+outputa2 = open('bm_angle_two_useful_1.pkl','wb')
+outputa3 = open('bm_angle_three_useful_1.pkl','wb')
+outputa4 = open('bm_angle_four_useful_1.pkl', 'wb')
 
 pickle.dump(a1, outputa1)
 pickle.dump(a2, outputa2)

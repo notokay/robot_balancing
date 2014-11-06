@@ -1,5 +1,5 @@
-from sympy.physics.mechanics import dynamicsymbols, ReferenceFrame, Point, inertia, RigidBody, KanesMethod
-from sympy import symbols
+from sympy.physics.mechanics import dynamicsymbols, ReferenceFrame, Point, inertia, RigidBody, KanesMethod, kinetic_energy
+from sympy import symbols, cos, sin
 from numpy import array,  zeros
 import numpy as np
 
@@ -209,6 +209,21 @@ fr, frstar = kane.kanes_equations(loads, bodies)
 mass_matrix = kane.mass_matrix_full
 forcing_vector = kane.forcing_full
 
+# Energies
+# ========
+ke_lleg = kinetic_energy(inertial_frame, l_leg)
+l_leg.set_potential_energy(l_leg_mass*g*l_leg_com_length*cos(theta1))
+
+ke_crotch = kinetic_energy(inertial_frame, crotch) - ke_lleg
+crotch.set_potential_energy(crotch_mass*g*(l_leg_length*cos(theta1) + (hip_width/2)*sin(theta1+theta2) + crotch_com_height*sin(theta1+theta2+1.57)))
+
+ke_body = kinetic_energy(inertial_frame, body) - ke_crotch - ke_lleg
+body.set_potential_energy(body_mass*g*(l_leg_length*cos(theta1) + (hip_width/2)*sin(theta1+theta2) + body_height*sin(theta1+theta2+1.57) + body_com_height*cos(theta1+theta2+1.57+theta4)))
+
+ke_rleg = kinetic_energy(inertial_frame, r_leg)
+r_leg.set_potential_energy(r_leg_mass*g*(l_leg_length*cos(theta1) + hip_width*sin(theta1+theta2) + -1*r_leg_com_length*cos(theta1+theta2+theta3)))
+
+
 # List the symbolic arguments
 # ===========================
 
@@ -247,18 +262,18 @@ specified = [l_ankle_torque, l_hip_torque, r_hip_torque, waist_torque]
 numerical_constants = array([0.8,      # l_leg_length [m]
                              0.4,      # l_leg_com_length [m]
                              20.0,     # l_leg_mass [kg]
-                             4.26667,  # l_leg_inertia [kg*m^2]
+                             1.0,  # l_leg_inertia [kg*m^2]
                              0.25,     # hip_width [m]
                              0.05,     # crotch_com_height [m]
                              20.0,     # crotch_mass [kg]
-                             0.4,      # crotch_inertia [kg*m^2]
+                             0.1,      # crotch_inertia [kg*m^2]
                              0.15,     # body_height
                              0.5,      # body_com_height
                              50.0,     # body_mass [kg]
-                             16.67,    # body_inertia [kg*m^2]
+                             4.0,    # body_inertia [kg*m^2]
                              0.4,      # r_leg_com_length [m]
                              20.0,     # r_leg_mass [kg]
-                             4.26667,  # r_leg_inertia [kg*m^2]
+                             1.0,  # r_leg_inertia [kg*m^2]
                              9.81],    # acceleration due to gravity [m/s^2]
                            )
 

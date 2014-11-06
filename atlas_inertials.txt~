@@ -1,3 +1,4 @@
+Body
     <link name="l_clav">
         <inertial>
             <mass value="3.45" />
@@ -9,12 +10,6 @@
             <mass value="3.388" />
             <origin xyz="0 -0.065 0" rpy="0 -0 0" />
             <inertia ixx="0.00656" ixy="0" ixz="0" iyy="0.00358" iyz="0" izz="0.00656" />
-        </inertial>
-    <link name="l_foot">
-        <inertial>
-            <mass value="2.05" />
-            <origin xyz="0.027 0 -0.067" rpy="0 -0 0" />
-            <inertia ixx="0.002" ixy="0" ixz="0" iyy="0.007" iyz="0" izz="0.008" />
         </inertial>
     <link name="l_hand">
         <inertial>
@@ -28,47 +23,11 @@
             <origin xyz="0 0 0" rpy="0 -0 0" />
             <inertia ixx="0.00265" ixy="0" ixz="0" iyy="0.00446" iyz="0" izz="0.00446" />
         </inertial>
-    <link name="l_lglut">
-        <inertial>
-            <mass value="0.866" />
-            <origin xyz="0.0133341 0.0170484 -0.0312052" rpy="0 -0 0" />
-            <inertia ixx="0.000691326" ixy="-2.24344e-05" ixz="2.50508e-06" iyy="0.00126856" iyz="0.000137862" izz="0.00106487" />
-        </inertial>
-    <link name="l_lleg">
-        <inertial>
-            <mass value="5.479" />
-            <origin xyz="0.001 0 -0.187" rpy="0 -0 0" />
-            <inertia ixx="0.077" ixy="0" ixz="-0.003" iyy="0.076" iyz="0" izz="0.01" />
-        </inertial>
-    <link name="l_scap">
-        <inertial>
-            <mass value="3.012" />
-            <origin xyz="0 0 0" rpy="0 -0 0" />
-            <inertia ixx="0.00319" ixy="0" ixz="0" iyy="0.00583" iyz="0" izz="0.00583" />
-        </inertial>
-    <link name="l_talus">
-        <inertial>
-            <mass value="0.125" />
-            <origin xyz="0 0 0" rpy="0 -0 0" />
-            <inertia ixx="1.01674e-05" ixy="0" ixz="0" iyy="8.42775e-06" iyz="0" izz="1.30101e-05" />
-        </inertial>
     <link name="l_uarm">
         <inertial>
             <mass value="3.388" />
             <origin xyz="0 -0.065 0" rpy="0 -0 0" />
             <inertia ixx="0.00656" ixy="0" ixz="0" iyy="0.00358" iyz="0" izz="0.00656" />
-        </inertial>
-    <link name="l_uglut">
-        <inertial>
-            <mass value="0.648" />
-            <origin xyz="0.00529262 -0.00344732 0.00313046" rpy="0 -0 0" />
-            <inertia ixx="0.00074276" ixy="-3.79607e-08" ixz="-2.79549e-05" iyy="0.000688179" iyz="-3.2735e-08" izz="0.00041242" />
-        </inertial>
-    <link name="l_uleg">
-        <inertial>
-            <mass value="9.209" />
-            <origin xyz="0 0 -0.21" rpy="0 -0 0" />
-            <inertia ixx="0.09" ixy="0" ixz="0" iyy="0.09" iyz="0" izz="0.02" />
         </inertial>
     <link name="ltorso">
         <inertial>
@@ -81,85 +40,6 @@
             <mass value="0.69" />
             <origin xyz="-0.00816266 -0.0131245 0.0305974" rpy="0 -0 0" />
             <inertia ixx="0.000454181" ixy="-6.10764e-05" ixz="3.94009e-05" iyy="0.000483282" iyz="5.27463e-05" izz="0.000444215" />
-        </inertial>
-    <link name="pelvis">
-        <inertial>
-            <mass value="17.882" />
-            <origin xyz="0.0111 0 0.0271" rpy="0 -0 0" />
-            <inertia ixx="0.1244" ixy="0.0008" ixz="-0.0007" iyy="0.0958" iyz="-0.0005" izz="0.1167" />
-        </inertial>
-    <link name="r_clav">
-        <inertial>
-            <mass value="3.45" />
-            <origin xyz="0 -0.048 0.084" rpy="0 -0 0" />
-            <inertia ixx="0.011" ixy="0" ixz="0" iyy="0.009" iyz="0.004" izz="0.004" />
-        </inertial>
-    <link name="r_farm">
-        <inertial>
-            <mass value="3.388" />
-            <origin xyz="0 0.065 0" rpy="0 -0 0" />
-            <inertia ixx="0.00656" ixy="0" ixz="0" iyy="0.00358" iyz="0" izz="0.00656" />
-        </inertial>
-    <link name="r_foot">
-        <inertial>
-            <mass value="2.05" />
-            <origin xyz="0.027 0 -0.067" rpy="0 -0 0" />
-            <inertia ixx="0.002" ixy="0" ixz="0" iyy="0.007" iyz="0" izz="0.008" />
-        </inertial>
-
-    <link name="r_hand">
-        <inertial>
-            <mass value="2.509" />
-            <origin xyz="0 0 0" rpy="0 -0 0" />
-            <inertia ixx="0.00265" ixy="0" ixz="0" iyy="0.00446" iyz="0" izz="0.00446" />
-        </inertial>
-    <link name="r_larm">
-        <inertial>
-            <mass value="2.509" />
-            <origin xyz="0 0 0" rpy="0 -0 0" />
-            <inertia ixx="0.00265" ixy="0" ixz="0" iyy="0.00446" iyz="0" izz="0.00446" />
-        </inertial>
-    <link name="r_lglut">
-        <inertial>
-            <mass value="0.866" />
-            <origin xyz="0.0133341 -0.0170484 -0.0312052" rpy="0 -0 0" />
-            <inertia ixx="0.000691326" ixy="2.24344e-05" ixz="2.50508e-06" iyy="0.00126856" iyz="-0.000137862" izz="0.00106487" />
-        </inertial>
-    <link name="r_lleg">
-        <inertial>
-            <mass value="5.479" />
-            <origin xyz="0.001 0 -0.187" rpy="0 -0 0" />
-            <inertia ixx="0.077" ixy="-0" ixz="-0.003" iyy="0.076" iyz="-0" izz="0.01" />
-        </inertial>
-    <link name="r_scap">
-        <inertial>
-            <mass value="3.012" />
-            <origin xyz="0 0 0" rpy="0 -0 0" />
-            <inertia ixx="0.00319" ixy="0" ixz="0" iyy="0.00583" iyz="0" izz="0.00583" />
-        </inertial>
-    <link name="r_talus">
-        <inertial>
-            <mass value="0.125" />
-            <origin xyz="0 0 0" rpy="0 -0 0" />
-            <inertia ixx="1.01674e-05" ixy="0" ixz="0" iyy="8.42775e-06" iyz="0" izz="1.30101e-05" />
-        </inertial>
-    <link name="r_uarm">
-        <inertial>
-            <mass value="3.388" />
-            <origin xyz="0 0.065 0" rpy="0 -0 0" />
-            <inertia ixx="0.00656" ixy="0" ixz="0" iyy="0.00358" iyz="0" izz="0.00656" />
-        </inertial>
-    <link name="r_uglut">
-        <inertial>
-            <mass value="0.648" />
-            <origin xyz="0.00529262 0.00344732 0.00313046" rpy="0 -0 0" />
-            <inertia ixx="0.00074276" ixy="3.79607e-08" ixz="-2.79549e-05" iyy="0.000688179" iyz="3.2735e-08" izz="0.00041242" />
-        </inertial>
-    <link name="r_uleg">
-        <inertial>
-            <mass value="9.209" />
-            <origin xyz="0 0 -0.21" rpy="0 -0 0" />
-            <inertia ixx="0.09" ixy="0" ixz="0" iyy="0.09" iyz="0" izz="0.02" />
         </inertial>
     <!-- with backpack -->
     <link name="utorso">
@@ -175,7 +55,138 @@
             <origin xyz="0.0255 -0.001 0.2180" rpy="0 -0 0" />
             <inertia ixx="0.708" ixy="0.001" ixz="0.004" iyy="0.367" iyz="0.002" izz="0.530" />
         </inertial>
+    <link name="l_scap">
+        <inertial>
+            <mass value="3.012" />
+            <origin xyz="0 0 0" rpy="0 -0 0" />
+            <inertia ixx="0.00319" ixy="0" ixz="0" iyy="0.00583" iyz="0" izz="0.00583" />
+        </inertial>
+    <link name="r_scap">
+        <inertial>
+            <mass value="3.012" />
+            <origin xyz="0 0 0" rpy="0 -0 0" />
+            <inertia ixx="0.00319" ixy="0" ixz="0" iyy="0.00583" iyz="0" izz="0.00583" />
+        </inertial>
+    <link name="r_uarm">
+        <inertial>
+            <mass value="3.388" />
+            <origin xyz="0 0.065 0" rpy="0 -0 0" />
+            <inertia ixx="0.00656" ixy="0" ixz="0" iyy="0.00358" iyz="0" izz="0.00656" />
+        </inertial>
+    <link name="r_farm">
+        <inertial>
+            <mass value="3.388" />
+            <origin xyz="0 0.065 0" rpy="0 -0 0" />
+            <inertia ixx="0.00656" ixy="0" ixz="0" iyy="0.00358" iyz="0" izz="0.00656" />
+        </inertial>
+    <link name="r_clav">
+        <inertial>
+            <mass value="3.45" />
+            <origin xyz="0 -0.048 0.084" rpy="0 -0 0" />
+            <inertia ixx="0.011" ixy="0" ixz="0" iyy="0.009" iyz="0.004" izz="0.004" />
+        </inertial>
+    <link name="r_hand">
+        <inertial>
+            <mass value="2.509" />
+            <origin xyz="0 0 0" rpy="0 -0 0" />
+            <inertia ixx="0.00265" ixy="0" ixz="0" iyy="0.00446" iyz="0" izz="0.00446" />
+        </inertial>
+    <link name="r_larm">
+        <inertial>
+            <mass value="2.509" />
+            <origin xyz="0 0 0" rpy="0 -0 0" />
+            <inertia ixx="0.00265" ixy="0" ixz="0" iyy="0.00446" iyz="0" izz="0.00446" />
+        </inertial>
+Total body weight: 91.61
 
+Crotch
+    <link name="pelvis">
+        <inertial>
+            <mass value="17.882" />
+            <origin xyz="0.0111 0 0.0271" rpy="0 -0 0" />
+            <inertia ixx="0.1244" ixy="0.0008" ixz="-0.0007" iyy="0.0958" iyz="-0.0005" izz="0.1167" />
+        </inertial>
+
+Right Leg
+    <link name="r_foot">
+        <inertial>
+            <mass value="2.05" />
+            <origin xyz="0.027 0 -0.067" rpy="0 -0 0" />
+            <inertia ixx="0.002" ixy="0" ixz="0" iyy="0.007" iyz="0" izz="0.008" />
+        </inertial>
+
+    <link name="r_lglut">
+        <inertial>
+            <mass value="0.866" />
+            <origin xyz="0.0133341 -0.0170484 -0.0312052" rpy="0 -0 0" />
+            <inertia ixx="0.000691326" ixy="2.24344e-05" ixz="2.50508e-06" iyy="0.00126856" iyz="-0.000137862" izz="0.00106487" />
+        </inertial>
+    <link name="r_lleg">
+        <inertial>
+            <mass value="5.479" />
+            <origin xyz="0.001 0 -0.187" rpy="0 -0 0" />
+            <inertia ixx="0.077" ixy="-0" ixz="-0.003" iyy="0.076" iyz="-0" izz="0.01" />
+        </inertial>
+    <link name="r_talus">
+        <inertial>
+            <mass value="0.125" />
+            <origin xyz="0 0 0" rpy="0 -0 0" />
+            <inertia ixx="1.01674e-05" ixy="0" ixz="0" iyy="8.42775e-06" iyz="0" izz="1.30101e-05" />
+        </inertial>
+    <link name="r_uglut">
+        <inertial>
+            <mass value="0.648" />
+            <origin xyz="0.00529262 0.00344732 0.00313046" rpy="0 -0 0" />
+            <inertia ixx="0.00074276" ixy="3.79607e-08" ixz="-2.79549e-05" iyy="0.000688179" iyz="3.2735e-08" izz="0.00041242" />
+        </inertial>
+    <link name="r_uleg">
+        <inertial>
+            <mass value="9.209" />
+            <origin xyz="0 0 -0.21" rpy="0 -0 0" />
+            <inertia ixx="0.09" ixy="0" ixz="0" iyy="0.09" iyz="0" izz="0.02" />
+        </inertial>
+Total right leg: 18.377
+
+Left Leg
+
+
+    <link name="l_foot">
+        <inertial>
+            <mass value="2.05" />
+            <origin xyz="0.027 0 -0.067" rpy="0 -0 0" />
+            <inertia ixx="0.002" ixy="0" ixz="0" iyy="0.007" iyz="0" izz="0.008" />
+        </inertial>
+    <link name="l_lglut">
+        <inertial>
+            <mass value="0.866" />
+            <origin xyz="0.0133341 0.0170484 -0.0312052" rpy="0 -0 0" />
+            <inertia ixx="0.000691326" ixy="-2.24344e-05" ixz="2.50508e-06" iyy="0.00126856" iyz="0.000137862" izz="0.00106487" />
+        </inertial>
+    <link name="l_lleg">
+        <inertial>
+            <mass value="5.479" />
+            <origin xyz="0.001 0 -0.187" rpy="0 -0 0" />
+            <inertia ixx="0.077" ixy="0" ixz="-0.003" iyy="0.076" iyz="0" izz="0.01" />
+        </inertial>
+    <link name="l_talus">
+        <inertial>
+            <mass value="0.125" />
+            <origin xyz="0 0 0" rpy="0 -0 0" />
+            <inertia ixx="1.01674e-05" ixy="0" ixz="0" iyy="8.42775e-06" iyz="0" izz="1.30101e-05" />
+        </inertial>
+    <link name="l_uglut">
+        <inertial>
+            <mass value="0.648" />
+            <origin xyz="0.00529262 -0.00344732 0.00313046" rpy="0 -0 0" />
+            <inertia ixx="0.00074276" ixy="-3.79607e-08" ixz="-2.79549e-05" iyy="0.000688179" iyz="-3.2735e-08" izz="0.00041242" />
+        </inertial>
+    <link name="l_uleg">
+        <inertial>
+            <mass value="9.209" />
+            <origin xyz="0 0 -0.21" rpy="0 -0 0" />
+            <inertia ixx="0.09" ixy="0" ixz="0" iyy="0.09" iyz="0" izz="0.02" />
+        </inertial>
+Total left leg: 18.37
 
 l_hip joint
     <joint name="l_leg_hpx" type="revolute">
@@ -191,15 +202,16 @@ l_hip joint
 
 
 r_hip joint
-    <joint name="r_leg_akx" type="revolute">
+    <joint name="r_leg_hpx" type="revolute">
         <origin xyz="0 0 0" rpy="0 -0 0" />
         <axis xyz="1 0 0" />
-        <parent link="r_talus" />
-        <child link="r_foot" />
+        <parent link="r_uglut" />
+        <child link="r_lglut" />
         <dynamics damping="0.1" friction="0" />
-        <limit effort="90" velocity="12" lower="-0.437" upper="0.438" />
-        <safety_controller k_position="100" k_velocity="100" soft_lower_limit="-10.8" soft_upper_limit="10.8" />
+        <limit effort="180" velocity="12" lower="-0.527" upper="0.513" />
+        <safety_controller k_position="100" k_velocity="100" soft_lower_limit="-10.5236" soft_upper_limit="10.5236" />
     </joint>
+
 
 
 waist joint
@@ -211,4 +223,15 @@ waist joint
         <dynamics damping="0.1" friction="0" />
         <limit effort="200" velocity="12" lower="-0.697" upper="0.572" />
         <safety_controller k_position="100" k_velocity="100" soft_lower_limit="-10.6981" soft_upper_limit="10.6981" />
+    </joint>
+
+right ankle joint
+    <joint name="r_leg_akx" type="revolute">
+        <origin xyz="0 0 0" rpy="0 -0 0" />
+        <axis xyz="1 0 0" />
+        <parent link="r_talus" />
+        <child link="r_foot" />
+        <dynamics damping="0.1" friction="0" />
+        <limit effort="90" velocity="12" lower="-0.437" upper="0.438" />
+        <safety_controller k_position="100" k_velocity="100" soft_lower_limit="-10.8" soft_upper_limit="10.8" />
     </joint>

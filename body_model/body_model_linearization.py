@@ -16,10 +16,10 @@ from body_model_setup import theta1, theta2, theta3,theta4, omega1, omega2, omeg
 init_vprinting()
 import pickle
 
-inputa1 = open('bm_angle_one_useful.pkl', 'rb')
-inputa2 = open('bm_angle_two_useful.pkl', 'rb')
-inputa3 = open('bm_angle_three_useful.pkl', 'rb')
-inputa4 = open('bm_angle_four_useful.pkl', 'rb')
+inputa1 = open('bm_angle_one_useful_1.pkl', 'rb')
+inputa2 = open('bm_angle_two_useful_1.pkl', 'rb')
+inputa3 = open('bm_angle_three_useful_1.pkl', 'rb')
+inputa4 = open('bm_angle_four_useful_1.pkl', 'rb')
 
 A1 = pickle.load(inputa1)
 A2 = pickle.load(inputa2)
@@ -73,7 +73,7 @@ for element in equilibrium_dict:
 print("forcing b done")
 
 for element in equilibrium_dict:
-  M.append(mass_matrix.subs(element))
+  M.append(mass_matrix.subs(element).subs(parameter_dict))
 print("mass matrix subs done")
 
 for i in range(len(M)):
@@ -93,11 +93,12 @@ for m,fb in zip(M,forcing_b):
   B.append(dot(inv(m), fb))
 print("fb done")
 
-outputA = open('bm_linearized_A_useful.pkl', 'wb')
-outputB = open('bm_linearized_B_useful.pkl','wb')
+outputA = open('bm_linearized_A_useful_1.pkl', 'wb')
+outputB = open('bm_linearized_B_useful_1.pkl','wb')
 
 pickle.dump(A, outputA)
 pickle.dump(B, outputB)
 
 outputA.close()
 outputB.close()
+

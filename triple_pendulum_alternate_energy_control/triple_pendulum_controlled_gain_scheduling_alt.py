@@ -24,7 +24,7 @@ right_hand_side = generate_ode_function(mass_matrix, forcing_vector,
 # Specify Numerical Quantities
 # ============================
 
-initial_coordinates = array([0.1,0.22,0.2])
+initial_coordinates = array([0.05,0.2,0.0])
 #initial_speeds = deg2rad(-5.0) * ones(len(speeds))
 initial_speeds = zeros(len(speeds))
 
@@ -80,7 +80,7 @@ output_vector = []
 diff_vector = []
 limits_vector = []
 passivity_vector = []
-max_pe = 0.8*30*9.8+(0.8+0.5)*90.0*9.8+30.0*(0.8+cos(0.6)*0.4)*9.8
+max_pe = 0.8*30*9.8+(0.8+0.5)*90.0*9.8+30.0*0.8*9.8
 last1 = 0.0
 last2 = 0.0
 last1vec = []
@@ -95,11 +95,11 @@ tpe_f = lambdify((theta1,theta2,theta3), tpe)
 allowed_tor = []
 
 def calc_com(t1, t2, t3):
-  LA_x = -1*numerical_constants[0]*sin(t1)
+  LA_x = -1*numerical_constants[8]*sin(t1)
   C_x = LA_x + numerical_constants[5]*cos(t1+t2)
   RH_x = LA_x + numerical_constants[4]*cos(t1+t2)
   M_x = C_x + numerical_constants[11]*cos(t1+t2+1.57)
-  RA_x = RH_x + numerical_constants[8]*2*sin(t1+t2+t3)
+  RA_x = RH_x + numerical_constants[8]*sin(t1+t2+t3)
   return (30*LA_x+90*M_x+30*RA_x)/150
 
 def controller(x, t):
@@ -113,7 +113,7 @@ def limits_controller(x,t):
   global last1
   global last2
   torquelim = 180
-  limit_torque = 300
+  limit_torque = 2*torquelim
   com = calc_com(x[0], x[1], x[2])
 
   if(counter ==0):
@@ -123,21 +123,21 @@ def limits_controller(x,t):
     idx = lastidx
     print('first round')
     print(lastidx)
-  if(x[3] < 1.0 and x[3] > -1.0):
+  if(x[3] < 0.5 and x[3] > -0.5):
     idx = np.abs(angle_1 - x[0]).argmin()
-    idx = idx + np.abs(angle_2[idx:idx+30] - x[1]).argmin()
+    idx = idx + np.abs(angle_2[idx:idx+50] - x[1]).argmin()
     lastidx = idx
     idx_vector.append(idx)
     print('adapt')
     print(idx)
   else:
-    if(x[5] > 1.0 or x[5] < -1.0):
+    if(x[5] > 0.5 or x[5] < -0.5):
       idx = lastidx
       print(idx)
       idx_vector.append(lastidx)
     else:
       idx = np.abs(angle_1 - x[0]).argmin()
-      idx = idx + np.abs(angle_3[idx:idx+30] - x[2]).argmin()
+      idx = idx + np.abs(angle_3[idx:idx+50] - x[2]).argmin()
       lastidx = idx
       print(idx)
       idx_vector.append(lastidx)
@@ -149,7 +149,7 @@ def limits_controller(x,t):
   p_energy_vector.append(tp)
   ke = max_pe - tp
   k_energy_vector.append(ke)
-  allowtor = (ke/(2*fabs(x[4])), ke/(2*fabs(x[5])))
+  allowtor = (ke/(2*fabs(x[4]) + 0.001), ke/(2*fabs(x[5]) + 0.001))
   allowed_tor.append(allowtor)
   
   if(returnval[1] > allowtor[0]):
@@ -160,6 +160,7 @@ def limits_controller(x,t):
     returnval[2] = allowtor[1]
   if(returnval[2] < -1*allowtor[1]):
     returnval[2] = -1*allowtor[1]
+
   if(returnval[1] > torquelim): 
     returnval[1] = torquelim
   if(returnval[1] < -1*torquelim):
@@ -168,7 +169,7 @@ def limits_controller(x,t):
     returnval[2] = torquelim
   if(returnval[2] < -1*torquelim):
     returnval[2] = -1*torquelim
-#  returnval[0] = 500*com
+  returnval[0] = 5000*com
   if(x[0] < -0.5):
     returnval[1] = 0
     returnval[2] = 0
@@ -179,13 +180,18 @@ def limits_controller(x,t):
     returnval[0] = 0
     
   if(x[1] >  0.516):
-    returnval[1] = returnval[1]+-1*limit_torque*(x[1]-0.516)
+#    returnval[1] = returnval[1]+-1*limit_torque*(x[1]-0.516)
+    returnval[1] = -1*limit_torque*(x[1]-0.516)
+
   if(x[1] < -0.516):
-    returnval[1] = returnval[1]+-1*limit_torque*(x[1]-0.516)
+#    returnval[1] = returnval[1]+-1*limit_torque*(x[1]-0.516)
+    returnval[1] = -1*limit_torque*(x[1] - 0.516)
   if(x[2] > 0.516):
-    returnval[2] = returnval[2]+-1*limit_torque*(x[2]-0.516)
+#    returnval[2] = returnval[2]+-1*limit_torque*(x[2]-0.516)
+    returnval[2] = -1*limit_torque*(x[2] - 0.516)
   if(x[2] < -0.516):
-    returnval[2] = returnval[2]+-1*limit_torque*(x[2]-0.516)
+#    returnval[2] = returnval[2]+-1*limit_torque*(x[2]-0.516)
+    returnval[2] = -1*limit_torque*(x[2] - 0.516)
   torque_vector.append(returnval)
   time_vector.append(t)
   return returnval
@@ -223,6 +229,7 @@ y = odeint(right_hand_side, x0, t, args=(args,))
 
 
 LA_x = -1*numerical_constants[0]*sin(y[:,0])
+la_x = -1*numerical_constants[8]*sin(y[:,0])
 LA_y = numerical_constants[0]*cos(y[:,0])
 
 C_x = LA_x + numerical_constants[5]*cos(y[:,1] + y[:,0])
@@ -235,10 +242,11 @@ RH_x = LA_x + numerical_constants[4]*cos(y[:,1] + y[:,0])
 RH_y = LA_y + numerical_constants[4]*sin(y[:,1] + y[:,0])
 
 RA_x = RH_x + numerical_constants[8]*2*sin(y[:,2] + y[:,1] + y[:,0])
+ra_x = RH_x + numerical_constants[8]*sin(y[:,2] + y[:,1] + y[:,0])
 RA_y = RH_y + -1*numerical_constants[8]*2*cos(y[:,2] + y[:,1] + y[:,0])
 
 com_loc = []
-for l, b, r in zip(LA_x, M_x, RA_x):
+for l, b, r in zip(la_x, M_x, ra_x):
   com_loc.append((30*l+90*b+30*r)/150)
 
 dt = 0.05
