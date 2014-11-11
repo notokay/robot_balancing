@@ -74,7 +74,7 @@ angle_3 = []
 angle_4 = []
 """
 for i in range(len(a1)):
-  if(a2[i] > -0.51  and a2[i] < 0.51):
+  if(a1[i] > 0.06 and a1[i] < 0.2):
     angle_1.append(a1[i])
     angle_2.append(a2[i])
     angle_3.append(a3[i])
@@ -91,7 +91,24 @@ angle_3 = []
 angle_4 = []
 
 for i in range(len(a1)):
-  if(a3[i] > -0.51 and a3[i] < 0.51):
+  if(a2[i] > -0.0  and a2[i] < 0.51):
+    angle_1.append(a1[i])
+    angle_2.append(a2[i])
+    angle_3.append(a3[i])
+    angle_4.append(a4[i])
+
+a1 = angle_1
+a2 = angle_2
+a3 = angle_3
+a4 = angle_4
+
+angle_1 =[]
+angle_2 = []
+angle_3 = []
+angle_4 = []
+
+for i in range(len(a1)):
+  if(a3[i] > -0.0 and a3[i] < 0.51):
     angle_1.append(a1[i])
     angle_2.append(a2[i])
     angle_3.append(a3[i])
@@ -106,7 +123,7 @@ angle_2 = []
 angle_3 = []
 angle_4 = []
 for i in range(len(a1)):
-  if(a4[i] > - 0.6 and a4[i] < 0.6):
+  if(a4[i] > - 0.3 and a4[i] < 0.3):
       angle_1.append(a1[i])
       angle_2.append(a2[i])
       angle_3.append(a3[i])
