@@ -27,7 +27,7 @@ right_hand_side = generate_ode_function(mass_matrix, forcing_vector,
 # Specify Numerical Quantities
 # ============================
 
-initial_coordinates = array([0.1,-0.1, 0.0, 0.])
+initial_coordinates = array([0.05,0.0, 0.0, 0.])
 #initial_speeds = deg2rad(-5.0) * ones(len(speeds))
 initial_speeds = zeros(len(speeds))
 
@@ -99,7 +99,7 @@ passivity_vector = []
 p_energy_vector = []
 k_energy_vector = []
 max_legs_pe = 0.8*20*9.8 + (0.8+0.05)*20*9.8 + 20*0.8*9.8
-max_body_pe = 50*(0.8+0.15+0.5)*9.8
+max_body_pe = 90*(0.8+0.15+0.5)*9.8
 lpe = l_leg.potential_energy.subs(parameter_dict)
 cpe = crotch.potential_energy.subs(parameter_dict)
 bpe = body.potential_energy.subs(parameter_dict)
@@ -137,7 +137,7 @@ def calc_com(t1, t2, t3, t4):
   B_x = W_x + numerical_constants[9]*cos(t1+t2+1.57+t4)
   RH_x = LH_x + numerical_constants[4]*cos(t1+t2)
   RA_x = RH_x + numerical_constants[12]*sin(t1+t2+t3)
-  return ((20*LH_x + 20*C_cx + 50*B_x + RA_x*20)/110)
+  return ((20*LH_x + 20*C_cx + 90*B_x + RA_x*20)/150)
 
 def continuous_energy_controller_integrator(x,t):
   global counter
@@ -265,7 +265,7 @@ def continuous_energy_controller_integrator(x,t):
     returnval[3] = -1*allowtor[2]
   
   returnval[1] = returnval[1] + 100*com*int_com_error + -10*x[5] + -1*(1/(fabs(com)+0.1))*x[5]
-  returnval[0] = returnval[0] + 10*int_com_error + 10*com*int_com_error
+  returnval[0] = returnval[0] + 10*int_com_error + 10*com*int_com_error + -1*(1/(fabs(com)+0.1))*x[0]
   returnval[3] = returnval[3] + 100*com + 100*com*int_com_error + 10*int_com_error + -1*(1/(fabs(com)+0.1))*x[7] + -50*x[7]
   returnval[2] = returnval[2] + -100*com +  -100*fabs(x[4]*x[7])*x[6]  + -100*x[6]# + -1*(1/(fabs(com)+0.1))*x[6]
   if(x[1] >  0.516):
