@@ -9,9 +9,6 @@ from sympy.physics.mechanics import dynamicsymbols, ReferenceFrame, Point, inert
 from sympy.physics.vector import init_vprinting, vlatex
 import numpy as np
 import matplotlib.pyplot as plt
-import scipy.integrate as integrate
-from scipy.integrate import odeint
-from scipy.linalg import solve_continuous_are
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import plot, xlabel, ylabel, legend, rcParams
 import matplotlib.animation as animation
