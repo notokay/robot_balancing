@@ -1,0 +1,6 @@
+(lp0
+S'((-l_1*m_2*omega1(t)**2*sin(theta1(t)) + m_1*1_comydot(t)*omega1(t) + m_1*c_x(t) + m_2*2_comydot(t)*omega1(t) + m_2*2_comydot(t)*omega2(t) + m_2*c_x(t))*2_comx(t) + (l_1*m_2*omega1(t)**2*cos(theta1(t)) - m_1*1_comxdot(t)*omega1(t) + m_1*c_y(t) - m_2*2_comxdot(t)*omega1(t) - m_2*2_comxdot(t)*omega2(t) + m_2*c_y(t))*2_comy(t))/(-l_1*m_2*2_comx(t)*cos(theta1(t)) - l_1*m_2*2_comy(t)*sin(theta1(t)) + m_1*1_comx(t)*2_comy(t) - m_1*1_comy(t)*2_comx(t))'
+p1
+aS'[l_1, 1_comx(t), 1_comy(t), 2_comx(t), 2_comy(t), m_1, m_2, theta1(t), theta2(t), omega1(t), omega2(t), c_x(t), c_y(t)]'
+p2
+a.

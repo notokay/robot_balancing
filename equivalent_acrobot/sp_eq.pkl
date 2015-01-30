@@ -1,0 +1,6 @@
+(lp0
+S'0.444444444444444*(-22.0725*l_s*sin(theta_s(t)) + T_s(t))/l_s**2'
+p1
+aS'[l_s, theta_s(t), T_s(t)]'
+p2
+a.

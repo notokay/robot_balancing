@@ -22,16 +22,19 @@ inputa1 = open('bm_angle_one.pkl','rb')
 inputa2 = open('bm_angle_two.pkl','rb')
 inputa3 = open('bm_angle_three.pkl','rb')
 inputa4 = open('bm_angle_four.pkl', 'rb')
+inputt = open('bm_trim.pkl', 'rb')
 
 a1 = pickle.load(inputa1)
 a2 = pickle.load(inputa2)
 a3 = pickle.load(inputa3)
 a4 = pickle.load(inputa4)
+trim = pickle.load(inputt)
 
 inputa1.close()
 inputa2.close()
 inputa3.close()
 inputa4.close()
+inputt.close()
 
 
 LH_x = []
@@ -50,6 +53,7 @@ angle_1 = []
 angle_2 = []
 angle_3 = []
 angle_4 = []
+trim_vec = []
 left_leg = numerical_constants[0]
 hip_width = numerical_constants[4]
 right_leg = numerical_constants[0]
@@ -79,16 +83,19 @@ for i in range(len(a1)):
     angle_2.append(a2[i])
     angle_3.append(a3[i])
     angle_4.append(a4[i])
+    trim_vec.append(trim[i])
 
 a1 = angle_1
 a2 = angle_2
 a3 = angle_3
 a4 = angle_4
+trim = trim_vec
 
 angle_1 =[]
 angle_2 = []
 angle_3 = []
 angle_4 = []
+trim_vec = []
 
 for i in range(len(a1)):
   if(a2[i] > -0.0  and a2[i] < 0.51):
@@ -96,16 +103,19 @@ for i in range(len(a1)):
     angle_2.append(a2[i])
     angle_3.append(a3[i])
     angle_4.append(a4[i])
+    trim_vec.append(trim[i])
 
 a1 = angle_1
 a2 = angle_2
 a3 = angle_3
 a4 = angle_4
+trim = trim_vec
 
 angle_1 =[]
 angle_2 = []
 angle_3 = []
 angle_4 = []
+trim_vec = []
 
 for i in range(len(a1)):
   if(a3[i] > -0.0 and a3[i] < 0.51):
@@ -113,25 +123,30 @@ for i in range(len(a1)):
     angle_2.append(a2[i])
     angle_3.append(a3[i])
     angle_4.append(a4[i])
+    trim_vec.append(trim[i])
 a1 = angle_1
 a2 = angle_2
 a3 = angle_3
 a4 = angle_4
+trim = trim_vec
 
 angle_1 = []
 angle_2 = []
 angle_3 = []
 angle_4 = []
+trim_vec = []
 for i in range(len(a1)):
-  if(a4[i] > - 0.6 and a4[i] < 0.6):
+  if(a4[i] > - 0.4 and a4[i] < 0.4):
       angle_1.append(a1[i])
       angle_2.append(a2[i])
       angle_3.append(a3[i])
       angle_4.append(a4[i])
+      trim_vec.append(trim[i])
 a1 = angle_1
 a2 = angle_2
 a3 = angle_3
 a4 = angle_4
+trim = trim_vec
 
 for i in range(len(a1)):
   LH_x.append(-1*left_leg*sin(a1[i]))
@@ -170,14 +185,17 @@ outputa1 = open('bm_angle_one_useful.pkl', 'wb')
 outputa2 = open('bm_angle_two_useful.pkl','wb')
 outputa3 = open('bm_angle_three_useful.pkl','wb')
 outputa4 = open('bm_angle_four_useful.pkl', 'wb')
+outputt = open('bm_trim_useful.pkl','wb')
 
 pickle.dump(a1, outputa1)
 pickle.dump(a2, outputa2)
 pickle.dump(a3, outputa3)
 pickle.dump(a4, outputa4)
+pickle.dump(trim, outputt)
+
 
 outputa1.close()
 outputa2.close()
 outputa3.close()
 outputa4.close()
-
+outputt.close()

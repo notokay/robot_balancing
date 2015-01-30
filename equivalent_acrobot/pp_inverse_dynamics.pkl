@@ -1,0 +1,6 @@
+(lp0
+S'Matrix([\n[l_1*l_2*m_2*(2*omega1(t) + omega2(t))*omega2(t)*sin(theta2(t)) - 9.81*l_1*m_1*sin(theta1(t)) - 9.81*l_1*m_2*sin(theta1(t)) + l_2*m_2*(l_1*cos(theta2(t)) + l_2)*a_2(t) - 9.81*l_2*m_2*sin(theta1(t) + theta2(t)) + (l_1**2*m_1 + m_2*(l_1**2 + 2*l_1*l_2*cos(theta2(t)) + l_2**2))*a_1(t)],\n[                                                                                                                                       -l_1*l_2*m_2*omega1(t)**2*sin(theta2(t)) + l_2**2*m_2*a_2(t) + l_2*m_2*(l_1*cos(theta2(t)) + l_2)*a_1(t) - 9.81*l_2*m_2*sin(theta1(t) + theta2(t))]])'
+p1
+aS'[l_1, l_2, m_1, m_2, theta1(t), theta2(t), omega1(t), omega2(t), a_1(t), a_2(t)]'
+p2
+a.

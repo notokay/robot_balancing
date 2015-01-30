@@ -1,0 +1,6 @@
+(lp0
+S'Matrix([\n[-0.5*omega_a(t)*cos(theta_a(t))],\n[-0.5*omega_a(t)*sin(theta_a(t))],\n[                              0]])'
+p1
+aS'[theta_a(t), omega_a(t)]'
+p2
+a.

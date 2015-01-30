@@ -16,13 +16,13 @@ import matplotlib.pyplot as plt
 from matplotlib.pyplot import plot, xlabel, ylabel, legend, rcParams
 import matplotlib.animation as animation
 from utils import det_controllable
-from double_pendulum_setup import speeds, coordinates, parameter_dict, forcing_vector, specified, mass_matrix, ankle_torque
+from double_pendulum_setup import speeds, coordinates, forcing_vector, specified, mass_matrix, ankle_torque
 import pickle
 
-inputA = open('double_pen_linearized_A_zoom.pkl','rb')
-inputB = open('double_pen_linearized_B_zoom.pkl','rb')
-input_one = open('double_pen_angle_1_zoom.pkl','rb')
-input_two = open('double_pen_angle_2_zoom.pkl','rb')
+inputA = open('double_pendulum_linearized_A_murray_params.pkl','rb')
+inputB = open('double_pendulum_linearized_B_murray_params.pkl','rb')
+input_one = open('equils_a1_useful_murray_params.pkl','rb')
+input_two = open('equils_a2_useful_murray_params.pkl','rb')
 
 A = pickle.load(inputA)
 B = pickle.load(inputB)
@@ -43,8 +43,8 @@ for a,b,angle_1, angle_2 in zip(A,B,theta1, theta2):
   S = solve_continuous_are(a,b,Q,R)
   K.append(dot(dot(inv(R), b.T), S))
 
-#outputK = open('double_pen_LQR_K_zoom.pkl', 'wb')
+outputK = open('double_pendulum_LQR_K_murray_params.pkl', 'wb')
 
-#pickle.dump(K,outputK)
+pickle.dump(K,outputK)
 
-#outputK.close()
+outputK.close()

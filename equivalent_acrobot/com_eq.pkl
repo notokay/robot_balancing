@@ -1,0 +1,6 @@
+(lp0
+S'Matrix([\n[-0.583333333333333*sin(theta_a(t) + theta_b(t)) - 0.444444444444444*sin(theta_a(t) + theta_b(t) + theta_c(t)) - 0.5*sin(theta_a(t))],\n[ 0.583333333333333*cos(theta_a(t) + theta_b(t)) + 0.444444444444444*cos(theta_a(t) + theta_b(t) + theta_c(t)) + 0.5*cos(theta_a(t))],\n[                                                                                                                                  0]])'
+p1
+aS'(theta_a(t), theta_b(t), theta_c(t))'
+p2
+a.

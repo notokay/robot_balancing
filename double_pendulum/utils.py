@@ -38,9 +38,7 @@ def det_controllable(a, b):
     controllability_matrix = []
     
     for i in range(n):
-        print(a**i * b)
-        controllability_matrix.append(a**i * b)
-    print(controllability_matrix)
+        controllability_matrix.append((a ** i) * b)
     return np.linalg.det(np.hstack(controllability_matrix))
 
 def controllability_matrix(a,b):

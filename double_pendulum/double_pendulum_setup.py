@@ -1,6 +1,6 @@
 from numpy import array, zeros
 from sympy import symbols, simplify, trigsimp, cos, sin
-from sympy.physics.mechanics import dynamicsymbols, ReferenceFrame, Point, inertia, RigidBody, KanesMethod, kinetic_energy, potential_energy
+from sympy.physics.mechanics import dynamicsymbols, ReferenceFrame, Point, inertia, Particle, KanesMethod, kinetic_energy, potential_energy
 
 #Sets up inertial frame as well as frames for each linkage
 inertial_frame = ReferenceFrame('I')
@@ -20,13 +20,9 @@ ankle = Point('A')
 leg_length = symbols('l_L')
 waist = Point('W')
 waist.set_pos(ankle, leg_length*leg_frame.y)
-
-#Sets up the centers of mass of each of the linkages
-leg_com_length, body_com_length = symbols('d_L, d_B')
-leg_mass_center = Point('L_o')
-leg_mass_center.set_pos(ankle, leg_com_length*leg_frame.y)
-body_mass_center = Point('B_o')
-body_mass_center.set_pos(waist, body_com_length*body_frame.y)
+body = Point('B')
+body_length = symbols('l_B')
+body.set_pos(waist, body_length*body_frame.y)
 
 #Sets up the angular velocities
 omega1, omega2 = dynamicsymbols('omega1, omega2')
@@ -42,36 +38,24 @@ body_frame.ang_vel_in(inertial_frame)
 
 #Sets up the linear velocities of the points on the linkages
 ankle.set_vel(inertial_frame, 0)
-leg_mass_center.v2pt_theory(ankle, inertial_frame, leg_frame)
-leg_mass_center.vel(inertial_frame)
 waist.v2pt_theory(ankle, inertial_frame, leg_frame)
 waist.vel(inertial_frame)
-body_mass_center.v2pt_theory(waist, inertial_frame, body_frame)
-body_mass_center.vel(inertial_frame)
+body.v2pt_theory(waist, inertial_frame, body_frame)
+body.vel(inertial_frame)
 
 #Sets up the masses of the linkages
 leg_mass, body_mass = symbols('m_L, m_B')
 
-#Sets up the rotational inertia of the linkages
-leg_inertia, body_inertia = symbols('I_Lz, I_Bz')
-
-#Sets up inertia dyadics
-leg_inertia_dyadic = inertia(leg_frame, 0, 0, leg_inertia)
-leg_central_inertia = (leg_inertia_dyadic, leg_mass_center)
-
-body_inertia_dyadic = inertia(body_frame, 0, 0, body_inertia)
-body_central_inertia = (body_inertia_dyadic, body_mass_center)
-
-#Defines the linkages as rigid bodies
-leg = RigidBody('Leg', leg_mass_center, leg_frame, leg_mass, leg_central_inertia)
-body = RigidBody('Body', body_mass_center, body_frame, body_mass, body_central_inertia)
+#Defines the linkages as particles
+waistP = Particle('waistP', waist, leg_mass)
+bodyP = Particle('bodyP', body, body_mass)
 
 #Sets up gravity information and assigns gravity to act on mass centers
 g = symbols('g')
-leg_grav_force_vector = -leg_mass*g*inertial_frame.y
-leg_grav_force = (leg_mass_center, leg_grav_force_vector)
-body_grav_force_vector = -body_mass*g*inertial_frame.y
-body_grav_force = (body_mass_center,body_grav_force_vector)
+leg_grav_force_vector = -1*leg_mass*g*inertial_frame.y
+leg_grav_force = (waist, leg_grav_force_vector)
+body_grav_force_vector = -1*body_mass*g*inertial_frame.y
+body_grav_force = (body,body_grav_force_vector)
 
 #Sets up joint torques
 ankle_torque, waist_torque = dynamicsymbols('T_a, T_w')
@@ -94,7 +78,7 @@ loads = [leg_grav_force,
          body_grav_force,
          leg_torque,
          body_torque]
-bodies = [leg, body]
+bodies = [waistP, bodyP]
 
 fr, frstar = kane.kanes_equations(loads, bodies)
 frplusfrstar = simplify(trigsimp(fr + frstar))
@@ -103,36 +87,36 @@ mass_matrix = simplify(trigsimp(kane.mass_matrix_full))
 forcing_vector = trigsimp(kane.forcing_full)
 
 constants = [leg_length,
-             leg_com_length,
              leg_mass,
-             leg_inertia,
-             body_com_length,
+             body_length,
              body_mass,
-             body_inertia,
              g]
 #Specified contains the matrix for the input torques
 specified = [ankle_torque, waist_torque]
 
-##Set up energies
-
-
-ke_leg = kinetic_energy(inertial_frame, leg)
-leg.set_potential_energy(leg_mass*g*leg_length*cos(theta1))
-
-ke_body = kinetic_energy(inertial_frame, body)
-body.set_potential_energy(body_mass*g*body_com_length*cos(theta1+theta2) + leg_length*cos(theta1))
-
 #Specifies numerical constants for inertial/mass properties
-numerical_constants = array([1.0,  # leg_length[m]
-                             1.0,   # leg_com_length[m]
-                             1.0, # leg_mass[kg]
-                             1.0,  # leg_inertia [kg*m^2]
-                             1.0,  # body_com_length [m]
-                             1.0,  # body_mass[kg]
-                             1.0,  # body_inertia [kg*m^2]
-                             9.81],    # acceleration due to gravity [m/s^2]
-                             )
+#Robot Params
+#numerical_constants = array([1.035,  # leg_length[m]
+#                             36.754, # leg_mass[kg]
+#			     0.85, # body_length[m]
+#                             91.61,  # body_mass[kg]
+#                             9.81]    # acceleration due to gravity [m/s^2]
+#                             )
+numerical_constants = array([0.75,
+                             7.0,
+                             0.5,
+                             8.0,
+                             9.81])
+
 #Set input torques to 0
 numerical_specified = zeros(2)
 
 parameter_dict = dict(zip(constants, numerical_constants))
+
+ke_energy = simplify(kinetic_energy(inertial_frame, waistP, bodyP).subs(parameter_dict))
+
+waistP.set_potential_energy(leg_mass*g*leg_length*cos(theta1))
+
+bodyP.set_potential_energy(body_mass*g*(leg_length*cos(theta1)+body_length*cos(theta1+theta2)))
+
+pe_energy = simplify(potential_energy(waistP, bodyP).subs(parameter_dict))

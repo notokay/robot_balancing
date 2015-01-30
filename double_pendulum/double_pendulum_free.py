@@ -11,7 +11,8 @@ from scipy.integrate import odeint
 from scipy.linalg import solve_continuous_are
 from pydy.codegen.code import generate_ode_function
 import matplotlib.animation as animation
-from double_pendulum_setup import theta1, theta2, ankle, leg_length, waist, omega1, omega2, ankle_torque, waist_torque, coordinates, speeds, kane, mass_matrix, forcing_vector, specified, parameter_dict, constants
+import math
+from double_pendulum_setup import theta1, theta2, ankle, leg_length, waist, omega1, omega2, ankle_torque, waist_torque, coordinates, speeds, kane, mass_matrix, forcing_vector, specified, parameter_dict, constants, ke_energy, pe_energy
 #from utils import controllable
 
 init_vprinting()
@@ -25,8 +26,8 @@ right_hand_side = generate_ode_function(mass_matrix, forcing_vector,
 
 #Initial Conditions for speeds and positions
 x0 = zeros(4)
-x0[:2] = deg2rad(40.0)
-x0[1] = deg2rad(120)
+x0[:2] = deg2rad(0)
+x0[1] = deg2rad(160)
 #Specifies numerical constants for inertial/mass properties
 #numerical_constants = array([1.035,  # leg_length[m]
 #                             0.58,   # leg_com_length[m]
@@ -39,15 +40,11 @@ x0[1] = deg2rad(120)
 #                             )
 
 numerical_constants = array([1.0,  # leg_length[m]
-                             0.5,   # leg_com_length[m]
-                             5.0, # leg_mass[kg]
-                             1.0,  # leg_inertia [kg*m^2]
-                             0.5,  # body_com_length [m]
-                             5,  # body_mass[kg]
-                             1.0,  # body_inertia [kg*m^2]
+                             1.0, # leg_mass[kg]
+                             1.0, # body_length[m]
+                             1.0,  # body_mass[kg]
                              9.81],    # acceleration due to gravity [m/s^2]
                              )
-
 #Set input torques to 0
 numerical_specified = array([0,0])
 
@@ -56,20 +53,19 @@ args = {'constants': numerical_constants,
 
 frames_per_sec = 60
 final_time = 5.0
-
 t = linspace(0.0, final_time, final_time*frames_per_sec)
 
 right_hand_side(x0, 0.0, args)
 
 y = odeint(right_hand_side, x0, t, args=(args,))
 
-x1 = numerical_constants[0]*sin(y[:,0])
+x1 = -1*numerical_constants[0]*sin(y[:,0])
 y1 = numerical_constants[0]*cos(y[:,0])
 
-x2 = x1 + numerical_constants[4]*2*sin(y[:,1])
-y2 = y1 + numerical_constants[4]*2*cos(y[:,1])
+x2 = x1 + -1*numerical_constants[2]*sin(y[:,0]+y[:,1])
+y2 = y1 + numerical_constants[2]*cos(y[:,0]+y[:,1])
 
-dt = 0.05
+dt = 1./frames_per_sec
 
 fig = plt.figure()
 ax = fig.add_subplot(111, autoscale_on=False,aspect='equal', xlim = (-2, 2), ylim = (-2, 2))
@@ -77,32 +73,41 @@ ax.grid()
 
 line, = ax.plot([], [], 'o-', lw=2)
 time_template = 'time=%.1fs'
-time_text = ax.text(0.05, 0.9, '', transform=ax.transAxes)
+time_text = ax.text(0.02, 0.95, '', transform=ax.transAxes)
+energy_text = ax.text(0.02, 0.90, '', transform = ax.transAxes)
+
+def energy(i):
+  state = dict(zip(coordinates+speeds, y[i]))
+  k = ke_energy.subs(state)
+  u = pe_energy.subs(state)
+  return k+u
 
 def init():
   line.set_data([],[])
   time_text.set_text('')
-  return line, time_text
+  energy_text.set_text('')
+  return line, time_text, energy_text
 
 def animate(i):
   thisx = [0, x1[i], x2[i]]
   thisy = [0, y1[i], y2[i]]
-
+  
   line.set_data(thisx, thisy)
   time_text.set_text(time_template%(i*dt))
-  return line, time_text
+  energy_text.set_text('energy = %.8f J' % energy(i))
+  return line, time_text, energy_text
 
-ani = animation.FuncAnimation(fig, animate, np.arange(1, len(y)), interval=25, blit=True, init_func=init)
+ani = animation.FuncAnimation(fig, animate, np.arange(1, len(y)), interval=dt*1000, blit=True, init_func=init)
 #ani.save('double_pendulum_free.mp4')
 plt.show()
 
-plot(t, rad2deg(y[:,:2]))
+plot(t, y[:,:2])
 xlabel('Time [s]')
 ylabel('Angle[deg]')
 legend(["${}$".format(vlatex(c)) for c in coordinates])
 plt.show()
 
-plot(t, rad2deg(y[:, 2:]))
+plot(t, y[:, 2:])
 xlabel('Time [s]')
 ylabel('Angular Rate [deg/s]')
 legend(["${}$".format(vlatex(s)) for s in speeds])

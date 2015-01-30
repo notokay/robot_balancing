@@ -12,7 +12,7 @@ from scipy.linalg import solve_continuous_are
 from pydy.codegen.code import generate_ode_function
 import pickle
 import matplotlib.animation as animation
-from double_pendulum_setup import theta1, theta2, ankle, leg_length, waist, omega1, omega2, ankle_torque, waist_torque, coordinates, speeds, kane, mass_matrix, forcing_vector, specified, parameter_dict, constants, ke_leg, ke_body,leg, body, numerical_constants, numerical_specified
+from double_pendulum_setup import theta1, theta2, ankle, leg_length, waist, omega1, omega2, ankle_torque, waist_torque, coordinates, speeds, kane, mass_matrix, forcing_vector, specified, parameter_dict, constants, numerical_constants, numerical_specified
 
 #from utils import controllable
 
@@ -25,10 +25,8 @@ right_hand_side = generate_ode_function(mass_matrix, forcing_vector,
 
 #Initial Conditions for speeds and positions
 x0 = zeros(4)
-#x0[0] = 
-#x0[1] = 0.2
-x0[0] = 1.57
-x0[1] = 0.0
+x0[0] = deg2rad(2.0)
+x0[1] = deg2rad(-2.0)
 
 args = {'constants': numerical_constants,
         'specified': numerical_specified}
@@ -40,50 +38,10 @@ t = linspace(0.0, final_time, final_time*frames_per_sec)
 
 right_hand_side(x0, 0.0, args)
 
-#Create dictionaries for the values for the equilibrium point of (0,0) i.e. pointing straight up
-#equilibrium_point = zeros(len(coordinates + speeds))
-equilibrium_point = [0.1383,-0.859099999,0,0]
-equilibrium_dict = dict(zip(coordinates + speeds, equilibrium_point))
-parameter_dict = dict(zip(constants, numerical_constants))
-
-tor_dict = dict(zip([ankle_torque], [0]))
-
-#Jacobian of the forcing vector w.r.t. states and inputs
-F_A = forcing_vector.jacobian(coordinates + speeds)
-F_B = forcing_vector.subs(tor_dict).jacobian(specified)
-#F_B = forcing_vector.jacobian(specified)
-
-#Substitute in the values for the variables in the forcing vector
-F_A = F_A.subs(equilibrium_dict)
-F_A = F_A.subs(parameter_dict)
-F_B = F_B.subs(equilibrium_dict).subs(parameter_dict)
-
-#Convert into a floating point numpy array
-F_A = array(F_A.tolist(), dtype=float)
-F_B = array(F_B.tolist(), dtype=float)
-
-M = mass_matrix.subs(equilibrium_dict)
-
-M = M.subs(parameter_dict)
-M = array(M.tolist(), dtype = float)
-
-#Compute the state A and input B values for our linearized function
-A = dot(inv(M), F_A)
-B = dot(inv(M), F_B)
-
-#Makes sure our function is controllable
-#assert controllable(A,B)
-
-Q = ((1/0.6)**2)*eye(4)
-R = ((1/50.0)**2)*eye(2)
-
-S = solve_continuous_are(A, B, Q, R)
-gainK = dot(dot(inv(R), B.T), S)
-
 torque_vector = []
 time_vector = []
 
-inputK = open('double_pen_LQR_K_zoom.pkl','rb')
+inputK = open('double_pen_LQR_K_robot.pkl','rb')
 inputa1 = open('double_pen_angle_1_zoom.pkl','rb')
 inputa2 = open('double_pen_angle_2_zoom.pkl','rb')
 inputtor = open('double_pen_equil_torques_zoom.pkl','rb')
@@ -107,32 +65,6 @@ counter = 0
 tracking_vector = []
 curr_vector = []
 
-def test_controller(x,t):
-  global lasttime
-  global lastk
-  global counter
-  global lastidx
-  torquelim = 200
-  if(counter == 0):
-    lastidx = np.abs(angle_1-x[0]).argmin()
-    counter = counter + 1
-    print("first round")
-    idx = lastidx
-  else:
-    idx = lastidx
-  returnval = -dot(K[idx],x)
-  tracking_vector.append(t)
-  returnval[0] = 0
-  if(returnval[1] > torquelim):
-    returnval[1] = torquelim
-  if(returnval[1] < -1*torquelim):
-    returnval[1] = -1*torquelim
-  if(t > 0.5 and t < 2.00):
-    returnval[0] = 4
-    returnval[1] = returnval[1] - 4
-  torque_vector.append(returnval)
-  time_vector.append(t)
-  return returnval
 def stay_controller(x,t):
   global lastidx
   global counter

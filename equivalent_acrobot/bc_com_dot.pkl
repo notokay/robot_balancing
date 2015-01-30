@@ -1,0 +1,6 @@
+(lp0
+S'Matrix([\n[-0.571428571428571*(omega_b(t) + omega_c(t))*cos(theta_b(t) + theta_c(t)) - 0.75*omega_b(t)*cos(theta_b(t))],\n[-0.571428571428571*(omega_b(t) + omega_c(t))*sin(theta_b(t) + theta_c(t)) - 0.75*omega_b(t)*sin(theta_b(t))],\n[                                                                                                          0]])'
+p1
+aS'[theta_b(t), theta_c(t), omega_b(t), omega_c(t)]'
+p2
+a.

@@ -28,8 +28,6 @@ speeds_zero_dict = dict(zip([omega1, omega2], [0,0]))
 
 subbed_eq = simplify(forcing_matrix.subs(torque_zero_dict).subs(speeds_zero_dict))
 
-solved_eq = solve(subbed_eq, [theta1, waist_torque])
-
 num_eq = simplify(subbed_eq.subs(parameter_dict))
 
 sin_eq = num_eq[0]
@@ -38,34 +36,34 @@ waist_eq = -1*(num_eq[1] - waist_torque)
 lam_f = lambdify((theta1, theta2),sin_eq)
 lam_w = lambdify((theta1, theta2), waist_eq)
 
-angle_one = -0.22
-angle_two = -2.35
-X = []
-Y = []
+angle_one = -3.15
+angle_two = -3.15
+a1 = []
+a2 = []
 torvec = []
 answer_vector = []
 
-threshold = 0.0001
+threshold = 0.001
 
-while (angle_one < 0.22):
-  angle_two = -2.35
-  while (angle_two < 2.35):
+while (angle_one < 3.15):
+  angle_two = -3.15
+  while (angle_two < 3.15):
     lam_sol = lam_f(angle_one, angle_two)
     if(lam_sol < threshold and lam_sol > -1*threshold):
       answer_vector.append([angle_one, angle_two])
-      X.append(angle_one)
-      Y.append(angle_two)
+      a1.append(angle_one)
+      a2.append(angle_two)
       torvec.append(lam_w(angle_one, angle_two))
-    angle_two = angle_two+0.0001
-  angle_one = angle_one + 0.0001
-  print(angle_one)
+    angle_two = angle_two + 0.001
+  angle_one = angle_one + 0.001
+print("completed")
 
-outputa2 = open('double_pen_angle_2_zoom.pkl', 'wb')
-outputa1 = open('double_pen_angle_1_zoom.pkl', 'wb')
-outputt = open('double_pen_equil_torques_zoom.pkl','wb')
+outputa2 = open('equils_a2_plot_murray_params_7v8.pkl', 'wb')
+outputa1 = open('equils_a1_plot_murray_params_7v8.pkl', 'wb')
+outputt = open('equils_torques_plot_murray_params_4v11.pkl','wb')
 
-pickle.dump(X, outputa1)
-pickle.dump(Y, outputa2)
+pickle.dump(a1, outputa1)
+pickle.dump(a2, outputa2)
 pickle.dump(torvec, outputt)
 
 outputt.close()

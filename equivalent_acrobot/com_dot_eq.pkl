@@ -1,0 +1,6 @@
+(lp0
+S'Matrix([\n[-0.583333333333333*(omega_a(t) + omega_b(t))*cos(theta_a(t) + theta_b(t)) - 0.444444444444444*(omega_a(t) + omega_b(t) + omega_c(t))*cos(theta_a(t) + theta_b(t) + theta_c(t)) - 0.5*omega_a(t)*cos(theta_a(t))],\n[-0.583333333333333*(omega_a(t) + omega_b(t))*sin(theta_a(t) + theta_b(t)) - 0.444444444444444*(omega_a(t) + omega_b(t) + omega_c(t))*sin(theta_a(t) + theta_b(t) + theta_c(t)) - 0.5*omega_a(t)*sin(theta_a(t))],\n[                                                                                                                                                                                                              0]])'
+p1
+aS'[theta_a(t), theta_b(t), theta_c(t), omega_a(t), omega_b(t), omega_c(t)]'
+p2
+a.

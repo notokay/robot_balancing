@@ -57,6 +57,7 @@ print("jacobian done")
 #Substitute in values for the variables in the forcing vector
 F_A = F_A.subs(parameter_dict)
 F_B = F_B.subs(parameter_dict)
+mass_matrix = mass_matrix.subs(parameter_dict)
 print("subs done")
 
 forcing_a = []
@@ -73,13 +74,8 @@ for element in equilibrium_dict:
 print("forcing b done")
 
 for element in equilibrium_dict:
-  M.append(mass_matrix.subs(element).subs(parameter_dict))
+  M.append(array(mass_matrix.subs(element).tolist(), dtype = float))
 print("mass matrix subs done")
-
-for i in range(len(M)):
-  M[i] = M[i].subs(parameter_dict)
-  M[i] = array(M[i].tolist(), dtype = float)
-print("m done")
 
 #state A and input B values for linearized functions
 A = []
