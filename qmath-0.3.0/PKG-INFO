@@ -1,0 +1,25 @@
+Metadata-Version: 1.0
+Name: qmath
+Version: 0.3.0
+Summary: 
+  qmath provides a class for deal with quaternion algebra and 3D rotations.
+  Root evaluations and Moebius transformations are implemented.
+  
+Home-page: None
+Author: Marco Abrate
+Author-email: abrate.m@gmail.com
+License: http://www.gnu.org/licenses/gpl.txt
+Download-URL: http://pypi.python.org/pypi/qmath/
+Description: 
+          This class provides the methods to deal algebrically with quaternions. Quaternions operations are implemented, including square and cubic roots evaluations.
+          Hurwitz quaternions can also be used. For Hurwitz quaternions modular operations are implemented.
+          Moreover, other algebraic tools are available, such as Cross Ratio and Moebius transformations.
+          
+Platform: Linux
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: GNU General Public License (GPL)
+Classifier: Programming Language :: Python
+Classifier: Topic :: System :: Hardware
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Classifier: Operating System :: POSIX :: Linux

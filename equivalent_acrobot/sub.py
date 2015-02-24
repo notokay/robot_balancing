@@ -1,0 +1,3 @@
+'(-m_2*(l_1*m_1*cos(theta2(t)) + l_1*m_2*cos(theta2(t)) + l_2(t)*m_2)*(l_1**3*m_1*cos(theta2(t)) + l_1**3*m_2*cos(theta2(t)) + l_1**2*l_2(t)*m_1 + 2*l_1**2*l_2(t)*m_2*cos(theta2(t))**2 + l_1**2*l_2(t)*m_2 + 3*l_1*l_2(t)**2*m_2*cos(theta2(t)) + l_2(t)**3*m_2) + (l_1**2*m_1 + l_1**2*m_2 + 2*l_1*l_2(t)*m_2*cos(theta2(t)) + l_2(t)**2*m_2)*(l_1**2*m_1**2 + 2*l_1**2*m_1*m_2 + l_1**2*m_2**2 + 2*l_1*l_2(t)*m_1*m_2*cos(theta2(t)) + 2*l_1*l_2(t)*m_2**2*cos(theta2(t)) + l_2(t)**2*m_2**2))/(l_1**2*n_c*(m_1 + m_2*sin(theta2(t))**2)*(m_1**2 + 2*m_1*m_2 + m_2**2))'
+
+'-l_2(t)**2*m_1*m_2*(l_1*m_1 + l_1*m_2 + l_2(t)*m_2*cos(theta2(t)))/(l_1*n_c*(m_1 + m_2)**2*(m_1 + m_2*sin(theta2(t))**2))'

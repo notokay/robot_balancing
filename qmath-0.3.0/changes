@@ -1,0 +1,12 @@
+qmath 0.3.0 released 23-Nov-2011
+  * Implemented the dependance on the product matrix to deal with generalizad quaternions over fields.
+
+qmath 0.2.0 released 23-Nov-2011
+  * Hurwitz quaternions class implemented. 
+  * Modular reduction and modular inversion of a Hurwitz quaternion.
+
+qmath 0.1.1 released 15-Nov-2011
+  * New examples added in the documentation files.
+
+qmath 0.1.0 released 10-Nov-2011
+  * First release. 
