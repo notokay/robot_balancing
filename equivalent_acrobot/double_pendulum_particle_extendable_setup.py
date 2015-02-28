@@ -182,3 +182,4 @@ inverse_dynamics = mass_matrix*acc - g_terms + coriolis
 com_l = simplify((com[0]**2+com[1]**2)**0.5)
 com_l_dot = com_l.diff(time).subs(thetadot_omega_dict)
 com_l_ddot = com_l_dot.diff(time).subs(thetadot_omega_dict).subs(omegadot_alpha_dict)
+
